@@ -10,3 +10,4 @@
 # IDEs and editors
 /.idea
 
+!/src/environments/
