@@ -1,0 +1,14 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+    "rtc": {
+      "offers": {
+        ".indexOn": "status"
+      },
+      "answers": {
+        ".indexOn": "status"
+      }
+    }
+  }
+}

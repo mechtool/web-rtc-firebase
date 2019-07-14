@@ -1,0 +1,17 @@
+<mat-toolbar color="primary">
+	<mat-icon (click)="onClickMenu()" matTooltip="Контакты">menu</mat-icon>
+	<div class="block-button-row">
+		<button mat-flat-button color="primary" *ngFor="let button of contentButtons" [routerLink]="button.link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{button.text}}</button>
+	</div>
+	<span class="example-spacer"></span>
+	<mat-icon class="settings-icon" (click)="onClickSettings()" [routerLink]="'/content/settings'" matTooltip="Настройки">settings</mat-icon>
+</mat-toolbar>
+<mat-progress-bar mode="indeterminate" *ngIf="progressVisible"></mat-progress-bar>
+<mat-sidenav-container>
+	<mat-sidenav mode="side" [(opened)]="opened"></mat-sidenav>
+	<mat-sidenav-content [@routerTransition]="getState(content)">
+		<router-outlet  #content="outlet" ></router-outlet>
+	</mat-sidenav-content>
+</mat-sidenav-container>
+<app-permissions></app-permissions>
+

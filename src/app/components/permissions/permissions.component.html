@@ -1,0 +1,20 @@
+<div class="permission-overlay" *ngIf="permissionsVisible">
+	<div class="permission-container" >
+		<p>Для работы приложения, ему необходимо получить доступ к камере, микрофону и разрешение пользователя на получения входящих уведомлений. Эти разрешения запрашиваються один раз и в дальнейшем используются автоматически.</p>
+		<div class="rtc-permission" *ngIf="rtcVisible">
+			<ng-container [ngSwitch]="rtcNote">
+				<p *ngSwitchCase="'prompt'" >Запросить доступ к камере и микрофону.</p>
+				<mat-error *ngSwitchCase="'denied'" ><p>Пользователь не дал разрешение на доступа к камере и микрофону. Снимите запрет и повторите попытку.</p></mat-error>
+			</ng-container>
+			<button mat-raised-button [color]="'primary'" [disabled]="rtcNote === 'denied'" (click)="onWebRtc()">Запросить</button>
+		</div>
+		<div class="notification-permission" *ngIf= "notificationVisible">
+			<ng-container [ngSwitch]="notificationNote">
+				<p  *ngSwitchCase="'prompt'">Запросить разрешение на получение уведомлений.</p>
+				<mat-error *ngSwitchCase="'denied'" ><p>Пользователь не дал разрешение на получение уведомлений. Снимите запрет и повторите попытку.</p></mat-error>
+			</ng-container>
+			<button mat-raised-button [color]="'primary'" [disabled]="notificationNote === 'denied'" (click)="onNotification()">Запросить</button>
+		</div>
+	</div>
+
+</div>

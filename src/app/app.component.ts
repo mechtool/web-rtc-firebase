@@ -1,31 +1,74 @@
-import { Component } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, HostBinding, NgZone, OnInit} from '@angular/core';
+import {OverlayContainer} from "@angular/cdk/overlay";
+import {Router} from "@angular/router";
+import {CommunicationService} from "./services/communication.service";
+import {routerTransition, sideNavListTrigger} from "./animations/animations";
+import {environment} from "../environments/environment.prod";
+
+import * as firebase from 'firebase/app'
+import 'firebase/auth';
+import 'firebase/database';
+import {DatabaseService} from "./services/database.service";
+import {Contact} from "./classes/Classes";
+
+firebase.initializeApp(environment.firebaseConfig);
+
 
 @Component({
-  selector: 'app-root',
-  template: `
-    <!--The content below is only a placeholder and can be replaced.-->
-    <div style="text-align:center">
-      <h1>
-        Welcome to {{title}}!
-      </h1>
-      <img width="300" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
-    </div>
-    <h2>Here are some links to help you start: </h2>
-    <ul>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/cli">CLI Documentation</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-      </li>
-    </ul>
-    <router-outlet></router-outlet>
-  `,
-  styles: []
+    selector: 'app-root',
+    templateUrl : './app.component.html',
+    styleUrls: ['./app.component.css'],
+    animations : [sideNavListTrigger, routerTransition] ,
+    changeDetection : ChangeDetectionStrategy.OnPush
 })
-export class AppComponent {
-  title = 'web-rtc-firebase';
+export class AppComponent implements OnInit{
+	
+    public auth;
+    public database;
+    public firebase;
+    public user;
+    public appUser : Contact;
+    @HostBinding('class') public componentCssClass;
+    
+    constructor(
+        public changeRef : ChangeDetectorRef,
+	public overlay : OverlayContainer,
+	public communication : CommunicationService,
+	private ngZone : NgZone,
+	private router : Router,
+	public databaseService : DatabaseService,
+    ){
+        this.firebase = firebase;
+        this.auth = firebase.auth();
+        this.database = firebase.database();
+        this.databaseService.database = this.database;
+        this.auth.onAuthStateChanged(async user => {
+            //если пользователь существует, необходимо проверить существования пользователя в базе данных, и если его нет, то создать
+	    await this.ngZone.run(() => this.router.navigateByUrl(user ? '/content' : '/authentication'));
+	    if(user){
+	        this.user = user;
+	        this.appUser = await this.databaseService.checkDatabaseUser(user) ;
+	    }
+	}) ;
+        
+        this.communication.subject.subscribe(message => {
+             if(message.type == 'colorTheme'){
+                 this.setAppTheme(message.selector)
+	     }
+	})
+    }
+    
+    setAppTheme(selector){
+	this.componentCssClass = selector;
+	this.overlay.getContainerElement().classList.add(this.componentCssClass);
+	this.changeRef.markForCheck();
+    }
+    
+    getState(outlet){
+	return outlet.activatedRouteData.type;
+    }
+    
+    ngOnInit(){
+	this.setAppTheme(window.localStorage.getItem('colorTheme') || 'second-theme') ;
+    }
 }

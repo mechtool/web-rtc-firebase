@@ -1,0 +1,98 @@
+.auth-page-container, *[class*="block"]{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.zero-block{
+    height: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+.first-block{
+    width: 250px;
+}
+.second-block, .first-block {
+    padding: 24px;
+    height: initial;
+    box-shadow: 0 0 10px #e6e6e6;
+}
+.google-form-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.button-group{
+    width: 100%;
+}
+.google-button-block, .button-group{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.google-button-block button{
+    margin-right: 8px;
+}
+.auth-page-buttons{
+    margin-top: 6px;
+}
+
+.mail-form-container{
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    justify-content: space-around;
+}
+.location{
+    margin: 0 6px;
+
+}
+.state-img{
+    top: 5px;
+    position: relative;
+}
+.button-group{
+    display: flex;
+    justify-content: space-between;
+}
+.auth-page-img{
+    max-width: 50%;
+    min-width: 300px;
+}
+.social-img{
+    width: 40px;
+    cursor: pointer;
+    margin: 4px;
+}
+.auth-progress{
+    width: 150px;
+    margin-top: 16px;
+}
+.phone-form-container{
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: initial;
+}
+
+.phone{
+    position: absolute;
+    display: none;
+}
+.phone-code{
+    position: absolute;
+    display: none;
+}
+.phone-code.active, .phone.active{
+    position: initial;
+    display: initial;
+}
+mat-error{
+    margin-bottom: 16px;
+}
+
