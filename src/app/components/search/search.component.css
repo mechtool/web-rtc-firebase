@@ -1,0 +1,15 @@
+.field-group{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px;
+
+}
+.search-form-field{
+    width: 100%;
+    margin: 8px;
+}
+.search-button{
+    top: -6px;
+}

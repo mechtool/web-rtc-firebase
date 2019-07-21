@@ -1,0 +1,15 @@
+<form class="search-container" novalidate [formGroup]="searchGroup" >
+	<div class="field-group">
+		<mat-form-field class="search-form-field">
+			<mat-label>Поиск и добавление контактов</mat-label>
+			<input type="text" matInput formControlName="searchControl" required [matAutocomplete]="contactsGroup">
+			<mat-autocomplete #contactsGroup="matAutocomplete" [displayWith]="displayFn" >
+				<mat-option *ngFor="let user of users | async" [value]="user" (onSelectionChange)="onSelectContact(user)">
+					<app-contact [context]="user" [menuType]="0" ></app-contact>
+				</mat-option>
+			</mat-autocomplete>
+			<mat-hint>Поиск и выбор контакта по телефону, почте, имени</mat-hint>
+			<mat-error *ngIf="searchGroup.invalid">Обязательный</mat-error>
+		</mat-form-field>
+	</div>
+</form>

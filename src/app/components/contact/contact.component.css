@@ -1,0 +1,25 @@
+.contact-container{
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 5px;
+}
+.mark-img-container{
+    display: flex;
+    position: relative;
+    margin-left: 5px;
+}
+.status-mark{
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    top: -4px;
+    left: -4px;
+}
+.img-contact{
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+}

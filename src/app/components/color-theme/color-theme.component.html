@@ -1,0 +1,5 @@
+<div class="color-theme-container">
+	<div class="color-item" *ngFor="let item of colorItems" [style.backgroundColor]="item.color" (click)="onClickColor(item.colorClass)">
+		<mat-icon *ngIf="item.active">done</mat-icon>
+	</div>
+</div>
