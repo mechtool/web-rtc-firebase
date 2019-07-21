@@ -1,0 +1,12 @@
+.inGoing,.outGoing,.notVisited{
+    color : #d6d6d6;
+}
+.inGoing.active{
+    color : #009118
+}
+.outGoing.active{
+    color : #000ccd
+}
+.notVisited.active{
+    color : #b40000
+}

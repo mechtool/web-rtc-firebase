@@ -34,7 +34,6 @@ export class PermissionsComponent  {
     
     checkComponentVisible(){
         this.permissionsVisible = this.rtcVisible || this.notificationVisible;
-	this.permissionsVisible || this.messagingService.initialiseMessaging();
 	this.changeRef.detectChanges();
     }
     
@@ -73,9 +72,8 @@ export class PermissionsComponent  {
     async checkPermissions(){
 	await Promise.all(this.descriptors.map(desc => navigator.permissions.query({name : desc}))).then(res => {
 	    this.descriptorsStates = this.descriptors.map((desc, inx) => {return {[desc] : res[inx].state}});
-	});/*.then(res => {
-	     return res.some(desc => Object.values(desc)[0].indexOf('prompt') >= 0 || Object.values(desc)[0].indexOf('denied') >= 0)
-	});*/
+	});
+	
 	this.checkComponentVisible();
     }
 }

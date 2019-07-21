@@ -7,7 +7,11 @@ import {
     MatButtonModule,
     MatTooltipModule,
     MatInputModule,
-    MatFormFieldModule, MatSelectModule, MatProgressBarModule
+    MatFormFieldModule,
+    MatSelectModule,
+    MatProgressBarModule,
+    MatMenuModule,
+    MatCardModule, MatAutocompleteModule, MatTabsModule,
 } from "@angular/material";
 
 @NgModule({
@@ -23,6 +27,10 @@ import {
       MatInputModule,
       MatSelectModule,
       MatProgressBarModule,
+      MatMenuModule,
+      MatCardModule,
+      MatAutocompleteModule,
+      MatTabsModule,
   ] ,
     exports : [
         MatToolbarModule,
@@ -34,6 +42,10 @@ import {
 	MatInputModule,
 	MatSelectModule,
 	MatProgressBarModule,
+	MatMenuModule,
+	MatCardModule,
+	MatAutocompleteModule,
+	MatTabsModule,
     ]
 })
 export class MaterialModule { }

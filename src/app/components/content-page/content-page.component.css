@@ -6,7 +6,14 @@ mat-sidenav{
 }
 .settings-icon{
     outline: none;
+    margin-left: 16px;
 }
 .block-button-row{
     margin-left: 16px;
+}
+:host /deep/  .contact-container:hover{
+    background: #dadada;
+}
+:host /deep/  mat-toolbar .contact-container:hover{
+    background: initial;
 }

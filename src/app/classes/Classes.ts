@@ -5,7 +5,7 @@ export class Contact {
     public photoURL: string;
     public uid: string;
     public email: string;
-    public phoneNumber: number | string;
+    public phoneNumber: string;
     public imgColor?: string;
     public messToken?: string;
     public statusColor ;
@@ -15,12 +15,12 @@ export class Contact {
 	this.name = user.name || '';
 	this.displayName = user.displayName || '';
 	this.phoneNumber = user.phoneNumber || '';
-	this.photoURL = user.photoURL || '/assets/icons/app-shell/user.svg';
+	this.photoURL = user.photoURL || '/assets/app-shell/user.svg';
 	this.uid = user.uid;
 	this.email = user.email || '';
-	this.imgColor = user.imgColor || (this.photoURL == '/assets/icons/app-shell/user.svg' ? Contact.getRandomColor() : 'transparent');
+	this.imgColor = user.imgColor || (this.photoURL == '/assets/app-shell/user.svg' ? Contact.getRandomColor() : 'transparent');
 	this.messToken = user.messToken || '';
-	this.statusColor = user.statusColor || '' ;
+	this.statusColor = user.statusColor || '#cbcbcb' ;
     }
     
     static getRandomColor() {

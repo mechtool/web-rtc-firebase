@@ -8,17 +8,18 @@ import {ContactsPageComponent} from "./components/contacts-page/contacts-page.co
 
 const routes: Routes = [
     {path : 'authentication', component : AuthPageComponent, data : {type : 'auth-page'}},
-    {path : 'content',  data : {type : 'content-page'},  component  : ContentPageComponent,  children : [
+    {path : 'content',  data : {type : 'content-page'},  component  : ContentPageComponent, resolve : {/*contacts : ContactsResolverService, messages : MessagesResolverService,*/ /*users : UsersResolverService*/ }, children : [
 	{path : 'settings', component : SettingsPageComponent, data : {type : 'settings-page'}},
 	{path : 'messages', component : MessagesPageComponent, data : {type : 'messages-page'}},
-	{path : 'contacts', component : ContactsPageComponent, data : {type : 'contacts-page'}}
+	{path : 'contacts',  component : ContactsPageComponent, data : {type : 'contacts-page'}}
 	]
     },
+    { path: '', redirectTo: '/authentication', pathMatch: 'full'},
     { path: '**', redirectTo: '/authentication', pathMatch: 'full'},
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, {initialNavigation : false})],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import {AppContextService} from "../../services/app-context.service";
 
 @Component({
   selector: 'app-settings-page',
@@ -7,9 +8,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SettingsPageComponent implements OnInit {
 
-  constructor() { }
+    constructor(
+      private appContext : AppContextService
+  ) { }
 
   ngOnInit() {
   }
-
+    
+    onSingOut(){
+	this.appContext.auth.signOut().then(() => {
+	    window.location.reload()
+	}).catch(function(error) {
+	    // An error happened.
+	});
+    }
 }

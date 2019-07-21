@@ -19,17 +19,24 @@ import {DatabaseService} from "./services/database.service";
 import { PermissionsComponent } from './components/permissions/permissions.component';
 import {MessagingService} from "./services/messaging.servece";
 import {HttpClientModule} from "@angular/common/http";
+import { ContactComponent } from './components/contact/contact.component';
+import { ColorThemeComponent } from './components/color-theme/color-theme.component';
+import {AppContextService} from "./services/app-context.service";
+import {SearchComponent} from "./components/search/search.component";
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    AuthPageComponent,
-    ContentPageComponent,
-    SettingsPageComponent,
-    MessagesPageComponent,
-    ContactsPageComponent,
-    PermissionsComponent,
-  ],
+    declarations: [
+	AppComponent,
+	AuthPageComponent,
+	ContentPageComponent,
+	SettingsPageComponent,
+	MessagesPageComponent,
+	ContactsPageComponent,
+	PermissionsComponent,
+	ContactComponent,
+	ColorThemeComponent,
+	SearchComponent,
+    ],
     imports: [
 	BrowserModule,
 	BrowserAnimationsModule,
@@ -45,6 +52,7 @@ import {HttpClientModule} from "@angular/common/http";
       CommunicationService ,
       DatabaseService,
       MessagingService,
+      AppContextService,
   ],
   bootstrap: [AppComponent]
 })

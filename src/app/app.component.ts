@@ -8,8 +8,12 @@ import {environment} from "../environments/environment.prod";
 import * as firebase from 'firebase/app'
 import 'firebase/auth';
 import 'firebase/database';
+import 'firebase/messaging'
 import {DatabaseService} from "./services/database.service";
 import {Contact} from "./classes/Classes";
+import {MessagingService} from "./services/messaging.servece";
+import {Observable} from "rxjs";
+import {AppContextService} from "./services/app-context.service";
 
 firebase.initializeApp(environment.firebaseConfig);
 
@@ -23,10 +27,7 @@ firebase.initializeApp(environment.firebaseConfig);
 })
 export class AppComponent implements OnInit{
 	
-    public auth;
-    public database;
-    public firebase;
-    public user;
+    public user ;
     public appUser : Contact;
     @HostBinding('class') public componentCssClass;
     
@@ -37,17 +38,30 @@ export class AppComponent implements OnInit{
 	private ngZone : NgZone,
 	private router : Router,
 	public databaseService : DatabaseService,
+	public messagingService : MessagingService,
+	public appContext : AppContextService,
     ){
-        this.firebase = firebase;
-        this.auth = firebase.auth();
-        this.database = firebase.database();
-        this.databaseService.database = this.database;
-        this.auth.onAuthStateChanged(async user => {
+        this.appContext.messaging = firebase.messaging();
+        this.appContext.auth = firebase.auth();
+        this.appContext.database = firebase.database();
+        this.appContext.firebase = firebase;
+        this.appContext.contactStatus = {};
+        this.appContext.auth.onAuthStateChanged(async user => {
             //если пользователь существует, необходимо проверить существования пользователя в базе данных, и если его нет, то создать
 	    await this.ngZone.run(() => this.router.navigateByUrl(user ? '/content' : '/authentication'));
 	    if(user){
 	        this.user = user;
-	        this.appUser = await this.databaseService.checkDatabaseUser(user) ;
+	        this.databaseService.checkDatabaseUser(user).subscribe(contact => {
+	            //Инициализация пользователя приложения
+		    this.appContext.appUser = this.appUser = contact;
+		    //Отслеживание активности сетевого соединения и установка статуса
+		    this.appContext.database.ref(".info/connected").on("value", (snap) => {
+			this.appUser.statusColor = snap.val() ? '#00a523' : '#cbcbcb';
+			this.changeRef.detectChanges();
+		    });
+		    this.messagingService.initialiseMessaging();
+		    this.changeRef.detectChanges();
+		}) ;
 	    }
 	}) ;
         
@@ -69,6 +83,10 @@ export class AppComponent implements OnInit{
     }
     
     ngOnInit(){
-	this.setAppTheme(window.localStorage.getItem('colorTheme') || 'second-theme') ;
+        let selector = window.localStorage.getItem('colorTheme');
+        if(!selector){
+	    window.localStorage.setItem('colorTheme', selector = 'second-theme');
+	}
+	this.setAppTheme(selector) ;
     }
 }

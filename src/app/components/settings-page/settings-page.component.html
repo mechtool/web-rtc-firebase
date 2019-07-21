@@ -1,1 +1,10 @@
-<p>settings-page works!</p>
+<div class="settings-container">
+	<div class="settings-entry">
+		<div class="entry-header">Цветовая схема</div>
+		<app-color-theme></app-color-theme>
+	</div>
+	<div class="settings-entry">
+		<div class="entry-header">Выход из приложения</div>
+		<mat-icon (click)=" onSingOut()">exit_to_app</mat-icon>
+	</div>
+</div>

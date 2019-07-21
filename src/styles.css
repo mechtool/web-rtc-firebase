@@ -55,3 +55,10 @@ mat-icon{
 div.mat-form-field-suffix{
     display: inherit;
 }
+div.mat-menu-panel{
+    opacity: 1!important;
+    transform: scale(1)!important;
+}
+button.active{
+    background: rgba(255, 255, 255, 0.24) !important;
+}

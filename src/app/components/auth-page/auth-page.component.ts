@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {FormGroup, FormControl, Validators} from "@angular/forms";
 import {AppComponent} from "../../app.component";
+import {AppContextService} from "../../services/app-context.service";
 
 @Component({
   selector: 'app-auth-page',
@@ -45,7 +46,9 @@ export class AuthPageComponent implements OnInit {
 	return el.class === window.navigator.language.substring(0, window.navigator.language.indexOf('-'));
     });
     
-    constructor(public appComp : AppComponent) {
+    constructor(
+        public appComp : AppComponent,
+	public appContext : AppContextService) {
         
         this.emailPassGroup = new FormGroup({
 	    emailControl: new FormControl('', [Validators.required, Validators.email]),
@@ -72,14 +75,14 @@ export class AuthPageComponent implements OnInit {
 	let val = this.emailPassGroup.value;
 	this.cursor = 'not-allowed';
 	this.emailPassError = 'Попытка входа в приложение.';
-        this.appComp.auth.signInWithEmailAndPassword(val.emailControl, val.passControl).then(()=>{
+        this.appContext.auth.signInWithEmailAndPassword(val.emailControl, val.passControl).then(()=>{
             this.emailPassError = 'Пользователь аутентифицирован.';
             this.appComp.changeRef.detectChanges();
 	}).catch((err) => {
 		var errorCode = this.handleError('email-pass', err.code);
 		if(errorCode.indexOf('user-not-found') >= 0){
 		    this.emailPassError = 'Регистрация нового пользователя.';
-		    this.appComp.auth.createUserWithEmailAndPassword(val.emailControl, val.passControl).then(res =>{
+		    this.appContext.auth.createUserWithEmailAndPassword(val.emailControl, val.passControl).then(res =>{
 			this.emailPassError = 'Пользователь создан.';
 			this.appComp.changeRef.detectChanges();
 		    
@@ -100,7 +103,7 @@ export class AuthPageComponent implements OnInit {
     
     onClickRemainderPass(){
         let val = this.emailPassGroup.value.emailControl;
-	this.appComp.auth.sendPasswordResetEmail(val).then(resp => {
+	this.appContext.auth.sendPasswordResetEmail(val).then(resp => {
 	    this.emailPassError = 'Отправлено на '+ val;
 	    this.appComp.changeRef.detectChanges();
 	})
@@ -110,9 +113,9 @@ export class AuthPageComponent implements OnInit {
         let phone = this.phoneGroup.value;
         this.cursor = 'not-allowed';
         this.activeStage = true;
-        this.recaptcha =  new this.appComp.firebase.auth.RecaptchaVerifier('recaptcha-container');
+        this.recaptcha =  new this.appContext.firebase.auth.RecaptchaVerifier('recaptcha-container');
         await this.recaptcha.render();
-	this.appComp.firebase.auth().signInWithPhoneNumber(phone.codeControl.code + phone.phoneControl, this.recaptcha)
+	this.appContext.auth.signInWithPhoneNumber(phone.codeControl.code + phone.phoneControl, this.recaptcha)
 	    .then((conformation)=> {
 	         this.conformation = conformation;
 	         //открыть форму ввода кода из sms
@@ -145,7 +148,7 @@ export class AuthPageComponent implements OnInit {
    }
     
     onClickGoogleButton(){
-	this.appComp.auth.signInWithPopup(new this.appComp.firebase.auth.GoogleAuthProvider()).then((result) => {
+	this.appContext.auth.signInWithPopup(new this.appContext.firebase.auth.GoogleAuthProvider()).then((result) => {
 	    // The signed-in user info.
 	    var user = result.user;
 	}).catch((error)=> {
@@ -167,13 +170,6 @@ export class AuthPageComponent implements OnInit {
 	this.recaptcha = undefined;
     }
 
-    onSingOut(){
-	this.appComp.auth.signOut().then(function() {
-	    // Sign-out successful.
-	}).catch(function(error) {
-	    // An error happened.
-	});
-    }
     
     handleError(type, code){
         //todo временное решение. Необходимо обработать ошибки, согласно кодам firebase

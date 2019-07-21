@@ -1,1 +1,25 @@
-<p>messages-page works!</p>
+<div class="message-container">
+	<mat-toolbar class="message-toolbar">
+		<span class="messages-header">Сообщения</span>
+		<span class="example-spacer"></span>
+		<div class="button-block">
+			<button mat-icon-button *ngFor="let icon of icons[tabIndex]" [matTooltip]="icon.tip" (click)="onClickButtonBlock(icon)" >
+				<mat-icon [attr.aria-label]="icon.aria" [class]="icon.className" [ngClass]="{active : icon.active}">{{icon.icon}}</mat-icon>
+			</button>
+		</div>
+	</mat-toolbar>
+	<div class="tabs-container" >
+		<mat-tab-group mat-stretch-tabs class="tab-group-message" (selectedIndexChange)="onChangeTab($event)">
+			<mat-tab label="Текстовые" >
+				<div class="text-message-container"></div>
+			</mat-tab>
+			<mat-tab label="Аудио">
+				<div class="audio-message-container"></div>
+			</mat-tab>
+			<mat-tab label="Видео">
+				<div class="video-message-container"></div>
+			</mat-tab>
+		</mat-tab-group>
+	</div>
+</div>
+

@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ContentPageComponent} from "../content-page/content-page.component";
+import {Contact} from "../../classes/Classes";
+import {BehaviorSubject} from "rxjs";
 
 @Component({
   selector: 'app-contacts-page',
@@ -7,9 +10,15 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ContactsPageComponent implements OnInit {
 
-  constructor() { }
+    public contacts : BehaviorSubject<Contact[]> ;
 
-  ngOnInit() {
-  }
+    constructor(
+        public contentComp : ContentPageComponent
+		) {
+        this.contacts = this.contentComp.contacts;
+    }
+  
+    ngOnInit() {
 
+    }
 }

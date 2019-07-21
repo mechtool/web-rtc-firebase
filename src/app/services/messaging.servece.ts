@@ -1,26 +1,24 @@
 import { Injectable } from '@angular/core';
-import * as firebase from 'firebase/app';
-import 'firebase/messaging';
 import {DatabaseService} from "./database.service";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {environment} from "../../environments/environment.prod";
+import {AppContextService} from "./app-context.service";
 @Injectable({
     providedIn: 'root'
 })
 export class MessagingService{
     
-    public messaging = firebase.messaging();
-    
     constructor(
         public database : DatabaseService,
 	public http : HttpClient,
+	public appContext : AppContextService,
     ) {}
     
     public initialiseMessaging(){
 	//Подписка на сервис сообщений в приложении с публичным ключем, сгенерированным  в консоли firebase /cloud messaging
-	this.messaging.usePublicVapidKey(environment.appPublicKey);
+	this.appContext.messaging.usePublicVapidKey(environment.appPublicKey);
 	//Подписка на событие обновления токена
-	this.messaging.onTokenRefresh(()=> {
+	this.appContext.messaging.onTokenRefresh(()=> {
 	    //Получение нового токена
 	    this.getToken().then((token)=>{
 		//Отправка нового токена на сервер и замену старого токена
@@ -29,7 +27,7 @@ export class MessagingService{
 	});
 	//При получении сообщения от Push сервиса, отобразить сообщение пользователю
 	//Срабатывает, если приложение в фокусе
-	this.messaging.onMessage((payload)=> {
+	this.appContext.messaging.onMessage((payload)=> {
 	    console.log('Получено новое сообщение!.', payload);
 	    //Отобразить пользовательский интерфейс с новым сообщением
 	    //todo Здесь находиться реализация отображения пользовательского интерфейса нового сообщения
@@ -58,7 +56,7 @@ export class MessagingService{
     }
     
     public getToken(){
-	return this.messaging.getToken().then(function(token) {
+	return this.appContext.messaging.getToken().then(function(token) {
 	    return token;
 	}).catch(function(err) {
 	    console.log('Невозможно получить токен!', err);
@@ -104,8 +102,8 @@ export class MessagingService{
     //Реализация удаление токена с Push сервера. Демонстрация возможнотей удаления токена с сервера.
     private deleteToken() {
         let that = this;
-	that.messaging.getToken().then(function(currentToken) {
-	    that.messaging.deleteToken(currentToken).then(function() {
+	that.appContext.messaging.getToken().then(function(currentToken) {
+	    that.appContext.messaging.deleteToken(currentToken).then(function() {
 		console.log('Токен удален с Push сервера.');
 		//todo отобразить пользователю  успешное удаление токена
 	    }).catch(function(err) {
