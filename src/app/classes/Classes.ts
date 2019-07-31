@@ -1,3 +1,4 @@
+const uuid = require('uuid/v1');
 export class Contact {
     
     public name: string;
@@ -57,9 +58,14 @@ export class Descriptor {
 
 export class Candidate extends Descriptor{}
 
-export class Offer extends Descriptor{}
+export class Offer extends Descriptor{
+    public candidates  = []
+}
 
-export class Answer extends Descriptor{}
+export class Answer extends Descriptor{
+    public candidates  = []
+    
+}
 
 export class Message  {
     
@@ -84,4 +90,10 @@ export class Message  {
 	this.receivers = message.receivers;
 	this.candidates = message.candidates || [];
     }
+}
+export class PcMessage{
+    
+    public pcCollection = {};
+    
+    constructor(public mid : string = uuid()){}
 }

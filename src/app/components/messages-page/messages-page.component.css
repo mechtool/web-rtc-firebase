@@ -10,3 +10,7 @@
 .notVisited.active{
     color : #b40000
 }
+mat-icon.add-button{
+    top: -2px!important;
+    position: relative!important;
+}

@@ -10,6 +10,14 @@ export class AppContextService {
     public firebase;
     public database;
     public messaging;
+    public contentComp;
     public contactStatus;
+    public notifications = [];
+    public notificationView ;
+    public contentResolver ;
+    public messageComp;
+    public webRtcService;
+    public webRtcComponent;
+    
   constructor() { }
 }

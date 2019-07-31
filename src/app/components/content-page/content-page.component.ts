@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import {ChangeDetectorRef, Component, ComponentFactoryResolver, HostListener, OnDestroy, OnInit, ViewChild, ViewContainerRef} from '@angular/core';
 import {AppComponent} from "../../app.component";
 import {routerTransition, sideNavListTrigger} from "../../animations/animations";
 import {NavigationCancel, NavigationEnd, NavigationStart, Router } from "@angular/router";
@@ -8,6 +8,7 @@ import {DatabaseService} from "../../services/database.service";
 import {Contact} from "../../classes/Classes";
 import {BehaviorSubject } from "rxjs";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {WebRtcService} from "../../services/web-rtc.service";
 
 @Component({
     selector: 'app-content-page',
@@ -21,7 +22,7 @@ export class ContentPageComponent implements OnInit, OnDestroy {
     public _messages = [];
     public _contacts = [];
     public subscriptions = [];
-    public opened = true;
+    public opened = false;
     public progressVisible = false;
     public sideNavMode : 'over' | 'push' | 'side' = 'side' ;
     public contacts : BehaviorSubject<Contact[]> = new BehaviorSubject([]);
@@ -31,6 +32,7 @@ export class ContentPageComponent implements OnInit, OnDestroy {
 	{text : 'Сообщения', link : '/content/messages'},
 	{text : 'Контакты', link : '/content/contacts'},
     ];
+    @ViewChild('userNotificationView', {read : ViewContainerRef, static: true}) public notificationView : ViewContainerRef;
     @HostListener('window:unload') onUnLoad(){
     //При закрытии окна, выполняется выход с сайта
     //	this.authService.singOut();
@@ -43,8 +45,11 @@ export class ContentPageComponent implements OnInit, OnDestroy {
 	private appContext : AppContextService,
 	public database : DatabaseService,
 	private media: BreakpointObserver,
+	public factoryResolver : ComponentFactoryResolver,
     ) {
-        //Подписка на события роутера начала и окончания маршрутизации
+    
+        this.appContext.contentComp = this;
+	//Подписка на события роутера начала и окончания маршрутизации
 	this.subscriptions.push(this.router.events.subscribe(event => {
 	    if (event instanceof NavigationStart || event instanceof NavigationEnd || event instanceof NavigationCancel) {
 		this.progressVisible = event instanceof NavigationStart;
@@ -53,12 +58,17 @@ export class ContentPageComponent implements OnInit, OnDestroy {
 	})) ;
 	this.subscriptions.push(this.media.observe('(max-width: 599px)').subscribe((sub) => {  //наблюдение за медиаточкой
 	    this.sideNavMode = (sub.matches ? 'over' : 'side');
+	   // this.opened = !sub.matches ;
 	    this.changeRef.markForCheck();
 	}));
 	
     }
     
     ngOnInit() {
+         //Инициализация переменных контекста
+	this.appContext.notificationView = this.notificationView ;
+	this.appContext.contentResolver = this.factoryResolver;
+	//Получение всех  пользователей для модуля контактов
 	this.database.getDatabaseRef('users/').on('value', (snap => {
 	    let v = snap.val();
 	    this._users = v ? Object.keys(v).filter(uid => uid !== this.appContext.auth.currentUser.uid).map(key => v[key]) : [];
@@ -87,10 +97,11 @@ export class ContentPageComponent implements OnInit, OnDestroy {
     }
     
     onClickSettings(){
-	this.messaging.sendMessage();
+	
     }
     onClickMenu(){
       this.opened = !this.opened;
+      this.changeRef.detectChanges();
     }
     getState(outlet){
 	return outlet.activatedRouteData.type;

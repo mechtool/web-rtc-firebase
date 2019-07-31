@@ -4,7 +4,7 @@
     position: relative;
     justify-content: flex-start;
     align-items: center;
-    padding: 5px;
+    padding: 2px;
 }
 .mark-img-container{
     display: flex;
@@ -22,4 +22,7 @@
     width: 24px;
     height: 24px;
     margin-right: 8px;
+}
+.name-contact{
+    white-space: nowrap;
 }

@@ -5,7 +5,7 @@
     "ng": "ng",
     "lite-server": "lite-server",
     "firebase": "firebase",
-    "start": "ng serve",
+    "start": "ng serve -o",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",

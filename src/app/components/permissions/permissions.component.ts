@@ -1,5 +1,6 @@
 import {ChangeDetectorRef, Component} from '@angular/core';
 import {MessagingService} from "../../services/messaging.servece";
+import {AppContextService} from "../../services/app-context.service";
 declare let navigator;
 @Component({
   selector: 'app-permissions',
@@ -10,12 +11,12 @@ export class PermissionsComponent  {
 
     private _descriptorStates;
     public rtcVisible = false;
-    public notificationVisible = false;
+    public noteVisible = false;
     public permissionsVisible = false;
     public set descriptorsStates(value){
           this._descriptorStates = value;
           this.notificationNote = value[2]['notifications'];
-          this.notificationVisible = this.descriptorsStates[2]['notifications'].indexOf('prompt') >= 0 || this.descriptorsStates[2]['notifications'].indexOf('denied') >= 0;
+          this.noteVisible = this.descriptorsStates[2]['notifications'].indexOf('prompt') >= 0 || this.descriptorsStates[2]['notifications'].indexOf('denied') >= 0;
           this.rtcVisible = (this.descriptorsStates[0]['camera'].indexOf('prompt') >= 0 || this.descriptorsStates[1]['microphone'].indexOf('prompt') >= 0 )|| (this.descriptorsStates[0]['camera'].indexOf('denied') >= 0 || this.descriptorsStates[1]['microphone'].indexOf('denied') >= 0);
 	  this.rtcNote = [this.descriptorsStates[0]['camera'] , this.descriptorsStates[1]['microphone']].find(data => (data === 'denied')) || 'prompt';
     };
@@ -28,12 +29,13 @@ export class PermissionsComponent  {
     constructor(
         private messagingService : MessagingService,
 	public changeRef : ChangeDetectorRef,
+	public appContext : AppContextService,
     ) {
 	this.checkPermissions();
     }
     
     checkComponentVisible(){
-        this.permissionsVisible = this.rtcVisible || this.notificationVisible;
+        this.permissionsVisible = this.rtcVisible || this.noteVisible;
 	this.changeRef.detectChanges();
     }
     
@@ -48,7 +50,7 @@ export class PermissionsComponent  {
 	    }
 	    else {
 	        console.log('[Notifications] Пользователь выдал разрешение');
-	        this.notificationVisible = false;
+	        this.noteVisible = false;
 	    }
 	    this.checkComponentVisible();
 	})

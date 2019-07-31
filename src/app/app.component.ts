@@ -14,9 +14,9 @@ import {Contact} from "./classes/Classes";
 import {MessagingService} from "./services/messaging.servece";
 import {Observable} from "rxjs";
 import {AppContextService} from "./services/app-context.service";
+import {WebRtcService} from "./services/web-rtc.service";
 
 firebase.initializeApp(environment.firebaseConfig);
-
 
 @Component({
     selector: 'app-root',
@@ -39,14 +39,16 @@ export class AppComponent implements OnInit{
 	private router : Router,
 	public databaseService : DatabaseService,
 	public messagingService : MessagingService,
-	public appContext : AppContextService,
+	public webRtcService : WebRtcService,
+    	public appContext : AppContextService,
     ){
         this.appContext.messaging = firebase.messaging();
         this.appContext.auth = firebase.auth();
         this.appContext.database = firebase.database();
         this.appContext.firebase = firebase;
         this.appContext.contactStatus = {};
-        this.appContext.auth.onAuthStateChanged(async user => {
+	this.appContext.webRtcService = this.webRtcService;
+	this.appContext.auth.onAuthStateChanged(async user => {
             //если пользователь существует, необходимо проверить существования пользователя в базе данных, и если его нет, то создать
 	    await this.ngZone.run(() => this.router.navigateByUrl(user ? '/content' : '/authentication'));
 	    if(user){
@@ -56,16 +58,19 @@ export class AppComponent implements OnInit{
 		    this.appContext.appUser = this.appUser = contact;
 		    //Отслеживание активности сетевого соединения и установка статуса
 		    this.appContext.database.ref(".info/connected").on("value", (snap) => {
-			this.appUser.statusColor = snap.val() ? '#00a523' : '#cbcbcb';
+			this.appUser.statusColor = snap.val() ? this.webRtcService.statusColors['open'] : this.webRtcService.statusColors['close'];
 			this.changeRef.detectChanges();
 		    });
 		    this.messagingService.initialiseMessaging();
+		    this.webRtcService.initialize().then(resp => {
+			console.log('web-rtc сервис инициализирован!');
+		    });
 		    this.changeRef.detectChanges();
 		}) ;
 	    }
 	}) ;
         
-        this.communication.subject.subscribe(message => {
+        this.communication.base.subscribe(message => {
              if(message.type == 'colorTheme'){
                  this.setAppTheme(message.selector)
 	     }

@@ -8,7 +8,6 @@ import {AppContextService} from "./app-context.service";
 })
 export class DatabaseService {
 
-    
     constructor(private appContext : AppContextService) {}
     
     checkDatabaseUser(user) : Observable<Contact>{
@@ -30,16 +29,29 @@ export class DatabaseService {
     getDatabaseRef(ref){
         return this.appContext.database.ref(ref);
     }
-    
+    sendDescriptor(desc){
+        return new Promise((res, rej)=> {
+	    this.getDatabaseRef(desc.descType + desc.contact.uid +'/'+ desc.messId).set(desc, ()=> {
+	        res(desc);
+	    })
+	})
+    }
     setContact(contact){
        return this.getDatabaseRef('contacts/' + this.appContext.auth.currentUser.uid + '/' + contact.uid).set(contact);
+    }
+    
+    setDescriptorStatus(update){
+        return Promise.all(Object.keys(update).map(key => this.getDatabaseRef(key).orderByChild('status').equalTo("active").ref.update(update[key])))
+
     }
     
     setMessagingToken(token){
         this.getDatabaseRef('users/' + this.appContext.auth.currentUser.uid).update({messToken : token});
     }
     getMessagingToken(uid){
-	return this.getDatabaseRef('users/' + uid + '/messToken');
+	return this.getDatabaseRef('users/' + uid + '/messToken').once('value').then(snap => {
+	    return  snap.val();
+    	})
     }
 
     deleteContact(contact){

@@ -38,6 +38,7 @@
 html, body {
     height: 100%;
     overflow: hidden;
+    position: relative;
 }
 body { margin: 0; font-family: "Oswald-L", "Oswald-R",  Roboto, "Helvetica Neue", sans-serif; }
 
@@ -62,3 +63,4 @@ div.mat-menu-panel{
 button.active{
     background: rgba(255, 255, 255, 0.24) !important;
 }
+

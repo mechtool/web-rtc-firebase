@@ -11,11 +11,10 @@
 		</button>
 		<mat-menu #appMenu="matMenu" [ngSwitch]="menuType">
 			<ng-container *ngSwitchCase="1">
-				<button mat-menu-item (click)="onDelete()">Удалить</button>
-				<button mat-menu-item (click)="onNewMessage()">Сообщение</button>
+				<button mat-menu-item (click)="onDelete(1)">Удалить</button>
 			</ng-container>
 			<ng-container *ngSwitchCase="2">
-				<button mat-menu-item (click)="onDelete()">Удалить</button>
+				<button mat-menu-item (click)="onNewMessage()">Сообщение</button>
 			</ng-container>
 			<ng-container *ngSwitchCase="3">
 				<button mat-menu-item (click)="onDelete()">Удалить</button>

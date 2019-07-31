@@ -1,6 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -23,6 +22,12 @@ import { ContactComponent } from './components/contact/contact.component';
 import { ColorThemeComponent } from './components/color-theme/color-theme.component';
 import {AppContextService} from "./services/app-context.service";
 import {SearchComponent} from "./components/search/search.component";
+import { MessagePageComponent } from './components/message-page/message-page.component';
+import { WebRtcComponent } from './components/web-rtc/web-rtc.component';
+import {WebRtcService} from "./services/web-rtc.service";
+import { UserNotificationComponent } from './components/user-notification/user-notification.component';
+import {NotificationService} from "./services/notification.service";
+import { MessageItemComponent } from './components/message-item/message-item.component';
 
 @NgModule({
     declarations: [
@@ -36,6 +41,10 @@ import {SearchComponent} from "./components/search/search.component";
 	ContactComponent,
 	ColorThemeComponent,
 	SearchComponent,
+	MessagePageComponent,
+	WebRtcComponent,
+	UserNotificationComponent,
+	MessageItemComponent,
     ],
     imports: [
 	BrowserModule,
@@ -53,7 +62,10 @@ import {SearchComponent} from "./components/search/search.component";
       DatabaseService,
       MessagingService,
       AppContextService,
+      WebRtcService,
+      NotificationService
   ],
+    entryComponents : [UserNotificationComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

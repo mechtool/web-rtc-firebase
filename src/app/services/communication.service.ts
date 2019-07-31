@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import {Subject} from "rxjs";
+import {BehaviorSubject, Subject} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
 })
 export class CommunicationService {
 
-    public subject : Subject<any> = new Subject();
+    public base : BehaviorSubject<any> = new BehaviorSubject({type  : 'initialize'});
     constructor() { }
 }

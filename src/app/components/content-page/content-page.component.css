@@ -1,19 +1,33 @@
-mat-sidenav-container{
+.content-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     height: 100%;
 }
+mat-sidenav-container{
+  flex: auto;
+}
 mat-sidenav{
-    width: 300px;
+    width: 250px
 }
 .settings-icon{
     outline: none;
     margin-left: 16px;
 }
-.block-button-row{
-    margin-left: 16px;
+.contacts-menu{
+    margin-right: 8px;
 }
 :host /deep/  .contact-container:hover{
     background: #dadada;
 }
 :host /deep/  mat-toolbar .contact-container:hover{
     background: initial;
+}
+.user-notification-container{
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }

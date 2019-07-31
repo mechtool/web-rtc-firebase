@@ -59,7 +59,6 @@ messaging.setBackgroundMessageHandler(function(payload) {
 	console.log('[firebase-messaging-sw.js] Получено сообщение с сервера');
 	// Здесь идет настройка сообщения
 	var notificationTitle = 'Новое сообщение.';
-//	var sender = JSON.parse(payload.data.sender);
 	var notificationOptions = {
 /*		body: 'Входящее сообщение от '+ (sender.name || sender.displayName || sender.email || sender.phoneNumber),
 		icon: icons[payload.data.messageType],*/
@@ -67,7 +66,6 @@ messaging.setBackgroundMessageHandler(function(payload) {
 			{action: 'receive', title: 'Принять'},
 			{action: 'reject', title: 'Пропустить'}]
 	};
-	
 	return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 

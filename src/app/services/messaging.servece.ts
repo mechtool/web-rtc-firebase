@@ -22,7 +22,7 @@ export class MessagingService{
 	    //Получение нового токена
 	    this.getToken().then((token)=>{
 		//Отправка нового токена на сервер и замену старого токена
-	//	this.sendTokenToServer(token);
+		this.sendTokenToServer(token);
 	    })
 	});
 	//При получении сообщения от Push сервиса, отобразить сообщение пользователю
@@ -31,7 +31,8 @@ export class MessagingService{
 	    console.log('Получено новое сообщение!.', payload);
 	    //Отобразить пользовательский интерфейс с новым сообщением
 	    //todo Здесь находиться реализация отображения пользовательского интерфейса нового сообщения
-	     //this.showUserNotification(payload);
+	    payload.data.sender = JSON.parse(payload.data.sender);
+	     //this.showUserNotification(payload.data);
 	});
 	
 	this.startMessaging();
@@ -67,36 +68,26 @@ export class MessagingService{
         this.database.setMessagingToken(token);
     }
     
-    sendMessage(){
-       this.getToken().then(token => {
-	   this.http.post( //Устаревшая схема протокола
-	       environment.messagingUrl, {
-		   "to" : token,
-		   "data" : {text : 'message'}
-	       }, {
-		   headers : new HttpHeaders({"Content-Type" : "application/json", "Authorization": "key="+environment.serverKey})}).toPromise();
-       }) ;
-
-    }
-    
-    sendHttpMessage(offer) : Promise<any> {//Отправка сообщения получателям
+    sendNotificationMessage(offer) : Promise<any> {//Отправка сообщения получателям
         //Получаем push токены для каждого получателя
+	let usid;
 	return Promise.all(Object.keys(offer.receivers).map(uid => {
+	    usid = uid;
 	    return this.database.getMessagingToken(uid)
-	})).then(tokens => {
-	    return Promise.all(tokens.map(token => {
+	})).then(token => {
+	    if(token){
 		return this.http.post( //Устаревшая схема протокола
 		    environment.messagingUrl, {
-		        "to" : token,
+			"to" : token[0],
 			"data" : {
-		            messageType : offer.messageType,
+			    messageType : offer.messageType,
 			    sender: JSON.stringify(offer.sender),
-			    messId : offer.messId,
-			    pcId : offer.pcId}
-			    },
-		{headers : new HttpHeaders({"Content-Type" : "application/json", "Authorization": "key="+environment.serverKey})}).toPromise();
-	    }))
-	});
+			    messId : offer.messId
+			}
+		    },
+		    {headers : new HttpHeaders({"Content-Type" : "application/json", "Authorization": "key="+environment.serverKey})}).toPromise();
+	    }else throw 'Нет токена для пользователя '+ usid;
+	}).catch(err => console.log(err))
     }
     
     //Реализация удаление токена с Push сервера. Демонстрация возможнотей удаления токена с сервера.

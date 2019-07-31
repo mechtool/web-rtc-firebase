@@ -4,10 +4,10 @@
     ".write": "auth != null",
     "rtc": {
       "offers": {
-        ".indexOn": "status"
+        ".indexOn": ["status"]
       },
       "answers": {
-        ".indexOn": "status"
+        ".indexOn": ["status"]
       }
     }
   }

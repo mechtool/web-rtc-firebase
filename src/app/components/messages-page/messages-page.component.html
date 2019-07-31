@@ -1,12 +1,14 @@
 <div class="message-container">
 	<mat-toolbar class="message-toolbar">
-		<span class="messages-header">Сообщения</span>
-		<span class="example-spacer"></span>
 		<div class="button-block">
 			<button mat-icon-button *ngFor="let icon of icons[tabIndex]" [matTooltip]="icon.tip" (click)="onClickButtonBlock(icon)" >
 				<mat-icon [attr.aria-label]="icon.aria" [class]="icon.className" [ngClass]="{active : icon.active}">{{icon.icon}}</mat-icon>
 			</button>
 		</div>
+		<span class="example-spacer"></span>
+		<button  mat-icon-button [routerLink]="'/content/message'">
+			<mat-icon class="add-button" matTooltip="Новое сообщение">add</mat-icon>
+		</button>
 	</mat-toolbar>
 	<div class="tabs-container" >
 		<mat-tab-group mat-stretch-tabs class="tab-group-message" (selectedIndexChange)="onChangeTab($event)">
