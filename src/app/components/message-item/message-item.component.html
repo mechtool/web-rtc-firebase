@@ -1,0 +1,8 @@
+<mat-card class="message-item-container">
+	<div class="contacts">
+		<app-contact [context]="context.sender" [menuType]="0"></app-contact>
+	</div>
+	<div class="message-content">
+		{{context.text}}
+	</div>
+</mat-card>

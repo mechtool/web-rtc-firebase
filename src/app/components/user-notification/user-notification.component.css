@@ -1,0 +1,25 @@
+:host{
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+}
+.notification-container{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background: white;
+    box-shadow: 0 0 10px #c7c7c7;
+    position: relative;
+    padding: 12px;
+    margin: 10px;
+}
+.message-text{
+    white-space: nowrap;
+}
+button{
+    margin: 0 5px 0 5px;
+}
+.app-contact{
+    margin: 0 5px 0 5px;
+}

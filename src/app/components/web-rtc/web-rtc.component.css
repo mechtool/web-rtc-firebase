@@ -1,0 +1,50 @@
+.web-rtc-container{
+    height: 100%;
+    position: relative;
+}
+.contacts-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+.web-rtc-message-form{
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    height: 100%;
+}
+.img-container{
+    display: flex;
+}
+.typeIcon{
+    color: #7d7d7d;
+}
+.typeIcon.active{
+    color: #0022cb;
+}
+.text-container{
+    width: 100%;
+    margin-top: 12px;
+}
+.message-card{
+    flex: 1 1 auto;
+}
+.message-container{
+    height: 100%;
+    position: relative;
+}
+.hasContacts{
+    color: #bbbbbb;
+    cursor: pointer;
+    line-height: 36px;
+}
+.close-button{
+    margin-left: 8px;
+}
+.errors-block{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+

@@ -1,0 +1,45 @@
+<div class="web-rtc-container">
+	<form class="web-rtc-message-form" novalidate (keydown.enter)="onSubmit($event)" >
+		<mat-toolbar>
+			<div class="img-container">
+				<button mat-icon-button *ngFor="let icon of typeIcons; index as inx" [matTooltip]="icon.tip" (click)="onClickIcon(inx)">
+					<mat-icon class="typeIcon" [ngClass]="{active : icon.active}">{{icon.text}}</mat-icon>
+				</button>
+			</div>
+			<span class="example-spacer"> </span>
+			<button class="submit-button" mat-icon-button type="submit" [matTooltip]="'Отправить'"  (click)="onSubmit($event)" [disabled]="messageGroup.get('textControl').invalid || messageContacts.value.length === 0 || !noPeers" >
+				<mat-icon>near_me</mat-icon>
+			</button>
+			<button mat-icon-button class="close-button"  [matTooltip]="'Завершить'" (click)="onCloseConnection()">
+				<mat-icon>clear</mat-icon>
+			</button>
+	</mat-toolbar>
+	<mat-progress-bar mode="indeterminate" *ngIf="connecting"></mat-progress-bar>
+	<mat-card class="message-card">
+		<div class="contacts">
+			<div class="hasContacts" (click)="onClickContacts()" *ngIf="!messageContacts.value.length">Контакты пока не выбраны....</div>
+			<div class="contacts-container">
+				<app-contact [menuType]="1" *ngFor="let contact of messageContacts | async" [context]="contact" (deletedFromMessage)="deleteContact($event)"></app-contact>
+			</div>
+		</div>
+		<form novalidate class="message-container" [formGroup]="messageGroup">
+			<ng-container [ngSwitch]="messageType">
+				<ng-container [ngSwitch]="0">
+					<mat-form-field class="text-container" [appearance]="'outline'">
+						<mat-label>Текс сообщения</mat-label>
+						<textarea matInput cdkTextareaAutosize formControlName="textControl" ></textarea>
+						<mat-error class="errors-block">
+							<mat-error *ngIf="messageGroup.get('textControl').errors && messageGroup.get('textControl').errors.required">Обязательный</mat-error>	&#160;
+							<mat-error *ngIf="messageGroup.get('textControl').errors && messageGroup.get('textControl').errors.contactList">Список контактов пуст</mat-error>
+						</mat-error>
+					</mat-form-field>
+				</ng-container>
+				<div class="text-messages-container">
+					<app-message-item *ngFor="let item of textMessages" [context]="item"></app-message-item>
+				</div>
+			</ng-container>
+		</form>
+	</mat-card>
+	</form>
+
+</div>
