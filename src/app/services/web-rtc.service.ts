@@ -35,39 +35,8 @@ export class WebRtcService {
     public statusColors = {new : '#59c289', open : '#3f8e54', connecting : '#3ea8f4', connected : '#5152f1',
 	disconnected : '#e68b51', closing : '#dd6191', closed : '#d13a31', failed : '#c5c5c5',
 	message : '#e3c200', close : '#c5c5c5', error : '#dd6191'};
-    public configuration =  {
-	iceServers: [
-	    {
-		'urls': 'stun:eu-turn3.xirsys.com'
-	    },
-	    {
-		'urls'      : 'turn:eu-turn3.xirsys.com:80?transport=udp',
-		'username'  : "bg1V1XOWQtvhObCaa4IYix91GcJa4oUeD5u5cqwStfY_trcca8J332_MyWF2qsQHAAAAAFzfvPpzaXdh",
-		'credential': "d0d52690-7943-11e9-ba1e-72c9c257b255",
-	    },
-	    {
-		'urls'      : 'turn:eu-turn3.xirsys.com:3478?transport=udp',
-		'username'  : "bg1V1XOWQtvhObCaa4IYix91GcJa4oUeD5u5cqwStfY_trcca8J332_MyWF2qsQHAAAAAFzfvPpzaXdh",
-		'credential': "d0d52690-7943-11e9-ba1e-72c9c257b255",
-	    },
-	    {
-		'urls'      : 'turn:eu-turn3.xirsys.com:3478?transport=tcp',
-		'username'  : "bg1V1XOWQtvhObCaa4IYix91GcJa4oUeD5u5cqwStfY_trcca8J332_MyWF2qsQHAAAAAFzfvPpzaXdh",
-		'credential': "d0d52690-7943-11e9-ba1e-72c9c257b255",
-	    },
-	    {
-		'urls'      : 'turn:eu-turn3.xirsys.com:80?transport=tcp',
-		'username'  : "bg1V1XOWQtvhObCaa4IYix91GcJa4oUeD5u5cqwStfY_trcca8J332_MyWF2qsQHAAAAAFzfvPpzaXdh",
-		'credential': "d0d52690-7943-11e9-ba1e-72c9c257b255",
-	    },
-	    {
-		'urls'      : 'turns:eu-turn3.xirsys.com:5349?transport=tcp',
-		'username'  : "bg1V1XOWQtvhObCaa4IYix91GcJa4oUeD5u5cqwStfY_trcca8J332_MyWF2qsQHAAAAAFzfvPpzaXdh",
-		'credential': "d0d52690-7943-11e9-ba1e-72c9c257b255",
-	    }
-	]
-    };
-	/*{iceServers: [{
+    public configuration = {
+        iceServers: [{
 	    urls: [ "stun:eu-turn3.xirsys.com" ]
 	}, {
 	    username: "bg1V1XOWQtvhObCaa4IYix91GcJa4oUeD5u5cqwStfY_trcca8J332_MyWF2qsQHAAAAAFzfvPpzaXdh",
@@ -80,7 +49,7 @@ export class WebRtcService {
 		"turns:eu-turn3.xirsys.com:443?transport=tcp",
 		"turns:eu-turn3.xirsys.com:5349?transport=tcp"
 	    ]
-	}]} ;*/
+	}]} ;
     
     constructor(
 	    public database : DatabaseService,
@@ -114,6 +83,18 @@ export class WebRtcService {
       
       }
     }
+    
+    checkComponentCollection() : Promise<any>{
+	return new Promise(async (res, rej) => {
+	    let result : any = {received : true, messId : uuid()};
+	    if(this.appContext.webRtcComponent && Object.keys(this.pcMessage.pcCollection).length){
+		//Отобразить предупреждение об удалении текущего сообщения
+		result = await this.showUserNotification({messId : uuid(), sender : {photoUrl : '', imgColor : '', message : 'Новое сообщение закроет текущее!'}});
+	    }
+	    res(result);
+	})
+    }
+
     
     onSignal(snap){//получено предложение type=offer/answer
 	let ntResult,
@@ -198,6 +179,7 @@ export class WebRtcService {
     }
     
     closeAllMessages(){
+        let messageType = this.appContext.webRtcComponent.messageType;
 	//Отчистка коллекции контактов и коллекции pcMap  с закрытием соединений
 	//отправка данных на сервер о закрытых соединениях
 	this.appContext.webRtcComponent.messageContacts.next([]);
@@ -209,14 +191,22 @@ export class WebRtcService {
 	    desc && this.database.setDescriptorStatus({[desc.descType + (pcItem.initializer ? desc.contact.uid : this.appContext.appUser.uid) + '/' + desc.messId] : {status : 'rejected'}});
 	    delete this.pcMessage.pcCollection[key];
 	}
-	//Отчистка всех сообщений в интерфейсе
-	this.appContext.webRtcComponent.textMessages = [];
 	//отчистка всей коммуникации
 	this.communications.base.next({type  : 'initialize'});
 	//принудительно устанавливаем отсутствие пиров
+	this.appContext.webRtcComponent.connecting = false;
 	this.appContext.webRtcComponent.noPeers = true;
+	
+	if(messageType === 0){//текстовые
+	    //Отчистка всех сообщений в интерфейсе
+	    this.appContext.webRtcComponent.textMessages = [];
+	    //Отчистка поля ввода текста
+	    this.appContext.webRtcComponent.messageGroup.get('textControl').setValue('');
+	    
+	    
+	}
 	//обновляем интерфейс
-	this.appContext.contentComp.changeRef.detectChanges();
+	this.appContext.webRtcComponent.changeRef.destroyed || this.appContext.webRtcComponent.changeRef.detectChanges();
     }
     
     setCandidates(pc, candidates){
@@ -341,7 +331,8 @@ export class WebRtcService {
             return this.appContext.webRtcComponent.noPeers = false ;
 	}
         //вычисление пиров на основе статуса
-	this.appContext.webRtcComponent.connecting = !(this.appContext.webRtcComponent.noPeers = col.some((pcItem : any) => /#59c289|#3f8e54|#3ea8f4|#5152f1|#e3c200/.test(pcItem.contact.statusColor)) );
+	this.appContext.webRtcComponent.noPeers = col.some((pcItem : any) => /#59c289|#3f8e54|#3ea8f4|#5152f1|#e3c200/.test(pcItem.contact.statusColor)) ;
+	this.appContext.webRtcComponent.connecting = (!this.appContext.webRtcComponent.noPeers) && col.length;
     }
     
     startConnection(options){
@@ -462,14 +453,16 @@ export class WebRtcService {
       }
   
       function onIceGatherStateChange(pcItem, event){
-/*	    if(event.target.iceGatheringState === 'complete'){
-		//Отправить предложение в базу, а затем запустить push messages для каждого получателя
-		this.database.sendDescriptor(pcItem.desc).then(desc => {
-		    desc.descType === 'rtc/offers/' && this.messaging.sendNotificationMessage(desc);
-		}).catch(err => {
-		    console.log(err);
-		})
-	    }*/
+	    if(event.target.iceGatheringState === 'complete'){
+		if(pcItem.desc.candidates && pcItem.desc.candidates.length){
+		    //Отправить предложение в базу, а затем запустить push messages для каждого получателя
+		    this.database.sendDescriptor(pcItem.desc).then(desc => {
+			desc.descType === 'rtc/offers/' && this.messaging.sendNotificationMessage(desc);
+		    }).catch(err => {
+			console.log(err);
+		    })
+		} else console.log('Кандидаты не сформированы, отправка предложения невозможна!')
+	    }
       }
   
       async function onIceCandidate(pcItem, event) {
@@ -487,14 +480,14 @@ export class WebRtcService {
 		  desc: JSON.stringify(event.candidate)
 	      });
 	      target.candidates.push(candidate);
-	  }else if(!event.candidate){
+	  }/*else if(!event.candidate){
 	      //Отправить предложение в базу, а затем запустить push messages для каждого получателя
 	      if(target.candidates && target.candidates.length){
 	          this.database.sendDescriptor(pcItem.desc).then(desc => {
 		  		desc.descType === 'rtc/offers/' && this.messaging.sendNotificationMessage(desc);
 	      		}).catch(err => {console.log(err)})
 	      }else console.log('Кандидаты не сформированы, отправка предложения невозможна!')
-	  }
+	  }*/
       }
     
       function getContactsObject(){

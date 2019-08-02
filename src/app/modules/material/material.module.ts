@@ -13,6 +13,7 @@ import {
     MatMenuModule,
     MatCardModule, MatAutocompleteModule, MatTabsModule, MatProgressSpinnerModule,
 } from "@angular/material";
+import {LayoutModule} from "@angular/cdk/layout";
 
 @NgModule({
   declarations: [],
@@ -32,6 +33,7 @@ import {
       MatAutocompleteModule,
       MatTabsModule,
       MatProgressSpinnerModule,
+      LayoutModule,
   ] ,
     exports : [
         MatToolbarModule,
@@ -48,6 +50,7 @@ import {
 	MatAutocompleteModule,
 	MatTabsModule,
 	MatProgressSpinnerModule,
+	LayoutModule,
     ]
 })
 export class MaterialModule { }

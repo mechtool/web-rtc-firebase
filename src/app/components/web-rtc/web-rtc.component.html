@@ -26,7 +26,7 @@
 			<ng-container [ngSwitch]="messageType">
 				<ng-container [ngSwitch]="0">
 					<mat-form-field class="text-container" [appearance]="'outline'">
-						<mat-label>Текс сообщения</mat-label>
+						<mat-label>Текст сообщения</mat-label>
 						<textarea matInput cdkTextareaAutosize formControlName="textControl" ></textarea>
 						<mat-error class="errors-block">
 							<mat-error *ngIf="messageGroup.get('textControl').errors && messageGroup.get('textControl').errors.required">Обязательный</mat-error>	&#160;

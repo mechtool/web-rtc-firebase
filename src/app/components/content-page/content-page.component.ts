@@ -8,7 +8,6 @@ import {DatabaseService} from "../../services/database.service";
 import {Contact} from "../../classes/Classes";
 import {BehaviorSubject } from "rxjs";
 import {BreakpointObserver} from "@angular/cdk/layout";
-import {WebRtcService} from "../../services/web-rtc.service";
 
 @Component({
     selector: 'app-content-page',
@@ -17,7 +16,8 @@ import {WebRtcService} from "../../services/web-rtc.service";
     animations : [sideNavListTrigger, routerTransition]
 })
 export class ContentPageComponent implements OnInit, OnDestroy {
-
+    
+    public low599;
     public _users = [];
     public _messages = [];
     public _contacts = [];
@@ -29,8 +29,8 @@ export class ContentPageComponent implements OnInit, OnDestroy {
     public messages : BehaviorSubject<Contact[]> = new BehaviorSubject([]);
     public users : BehaviorSubject<any> = new BehaviorSubject([]);
     public contentButtons = [
-	{text : 'Сообщения', link : '/content/messages'},
-	{text : 'Контакты', link : '/content/contacts'},
+	{text : 'Сообщения', link : '/content/messages', icon : 'sms_failed'},
+	{text : 'Контакты', link : '/content/contacts', icon : 'group'},
     ];
     @ViewChild('userNotificationView', {read : ViewContainerRef, static: true}) public notificationView : ViewContainerRef;
     @HostListener('window:unload') onUnLoad(){
@@ -57,8 +57,8 @@ export class ContentPageComponent implements OnInit, OnDestroy {
 	    }
 	})) ;
 	this.subscriptions.push(this.media.observe('(max-width: 599px)').subscribe((sub) => {  //наблюдение за медиаточкой
+	    this.low599 = sub.matches;
 	    this.sideNavMode = (sub.matches ? 'over' : 'side');
-	   // this.opened = !sub.matches ;
 	    this.changeRef.markForCheck();
 	}));
 	

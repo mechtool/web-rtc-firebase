@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, ComponentFactoryResolver, ComponentRef, OnDestroy, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {AppContextService} from "../../services/app-context.service";
 import {WebRtcService} from "../../services/web-rtc.service";
@@ -7,6 +7,7 @@ import {ContentPageComponent} from "../content-page/content-page.component";
 import {BehaviorSubject} from "rxjs";
 import {Contact, PcMessage} from "../../classes/Classes";
 import {filter} from "rxjs/operators";
+import {tsCastToAny} from "@angular/compiler-cli/src/ngtsc/typecheck/src/ts_util";
 
 @Component({
   selector: 'app-web-rtc',
@@ -16,12 +17,12 @@ import {filter} from "rxjs/operators";
 export class WebRtcComponent implements OnInit, OnDestroy {
     
     public connecting = false;
-    public noPeers = true;
+    public noPeers = true;//контакты со статусами, позволяющие отправку сообщения
     public subscribes = [];
     public textMessages = [];
     public messageType = 0;
     public typeIcons = [
-        {text : 'message', active : 'active', tip : 'Текстовое'},
+        {text : 'message', active : true, tip : 'Текстовое'},
 	{text : 'sms', active : false, tip : 'Audio' },
 	{text : 'voice_chat', active : false, tip : 'Video'}
 	];
@@ -49,6 +50,7 @@ export class WebRtcComponent implements OnInit, OnDestroy {
 		  if(!v.some(c => c.uid === con.uid) || !v.length){
 		      v.push(this.appContext.contentComp._contacts.find(cont => cont.uid == con.uid) || con) ;
 		      this.messageContacts.next(v);
+		      this.noPeers = true;
 		  }
 	      }) ;
 	      message.complete && message.complete();
@@ -93,8 +95,8 @@ export class WebRtcComponent implements OnInit, OnDestroy {
     onClickContacts(){
 	this.contentComp.onClickMenu();
     }
-    onCloseConnection(){
-        this.webRtcService.closeAllMessages();
+   async onCloseConnection(){
+        let result = await this.webRtcService.checkComponentCollection();
+	result.received && this.webRtcService.closeAllMessages();
     }
-
 }

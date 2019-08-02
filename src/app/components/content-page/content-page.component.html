@@ -1,8 +1,13 @@
 <div class="content-container">
 	<mat-toolbar color="primary">
 		<mat-icon class="contacts-menu" (click)="onClickMenu()" matTooltip="Контакты">menu</mat-icon>
-		<div class="block-button-row">
+		<div class="block-button-row" *ngIf="!low599">
 			<button mat-flat-button color="primary" *ngFor="let button of contentButtons" [routerLink]="button.link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{button.text}}</button>
+		</div>
+		<div class="" *ngIf="low599">
+			<button mat-icon-button *ngFor="let button of contentButtons" [routerLink]="button.link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+				<mat-icon>{{button.icon}}</mat-icon>
+			</button>
 		</div>
 		<span class="example-spacer"></span>
 		<app-contact *ngIf="appComp.appUser" [context]="appComp.appUser" [menuType]="false"></app-contact>
