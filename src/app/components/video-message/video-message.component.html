@@ -1,0 +1,19 @@
+<div class="grid-container">
+	<div class="main-video-container">
+		<mat-toolbar class="video-message-toolbar">
+			<button mat-mini-fab *ngFor="let button of toolbarButtons" [ngClass]="button.className" (click)="button.listener()">
+				<mat-icon class="icon-button-toolbar">{{button.text}}</mat-icon>
+			</button>
+		</mat-toolbar>
+		<button class="start-coll-button" mat-fab  (click)="onClickMenuButton()">
+			<mat-icon >call</mat-icon>
+		</button>
+		<video #selfVideo class="self-video-element" autoplay playsinline ></video>
+	</div>
+	<div class="peers-video-elements-container">
+		<div class="contact-element" *ngFor="let contact of messageContacts | async">
+			<app-contact [menuType]="0"  [context]="contact" ></app-contact>
+			<video #peerVideo [srcObject]="pcMessage?.pcCollection[contact.uid]?.srcObject" autoplay playsinline></video>
+		</div>
+	</div>
+</div>

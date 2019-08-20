@@ -35,7 +35,7 @@ export class Descriptor {
     messId : string;// идентификатор сообщения
     receivers : {[key : string] : string}; //идентификаторы получателей
     sender : {} | boolean; //идентификаторы отправителей (отправителя)
-    data : number; //дата сообщения milliseconds
+    date : number; //дата сообщения milliseconds
     desc : string; //дескриптор
     descType : string; //offer / answer / icecandidate
     messageType : string;
@@ -46,7 +46,7 @@ export class Descriptor {
 	this.uid = desc.uid; //Идентификатор пользователя
 	this.receivers = desc.receivers;//идентификаторы получателей
 	this.sender = desc.sender; //идентификаторы отправителей (отправителя)
-	this.data  = Date.now(); //дата сообщения milliseconds
+	this.date  = Date.now(); //дата сообщения milliseconds
 	this.desc  = desc.desc; //дескриптор
 	this.descType = desc.descType; //offer / answer / icecandidate
 	this.messId = desc.messId;// идентификатор дескриптора
@@ -56,7 +56,13 @@ export class Descriptor {
     }
 }
 
-export class Candidate extends Descriptor{}
+export class Candidate extends Descriptor{
+    public descId : string;
+    constructor(cand){
+        super(cand);
+        this.descId = cand.descId;
+    }
+}
 
 export class Offer extends Descriptor{
     public candidates  = []
@@ -94,6 +100,5 @@ export class Message  {
 export class PcMessage{
     
     public pcCollection = {};
-    
     constructor(public mid : string = uuid()){}
 }

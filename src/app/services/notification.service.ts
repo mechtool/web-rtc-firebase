@@ -23,7 +23,7 @@ export class NotificationService {
 	return item.componentRef;
 	
     }
-    deleteSnackNotification(messId){
+    deleteNotification(messId){
 	let res = this.userNoteSubscriptions.find(sn => sn.messId === messId);
 	res && res.componentRef.destroy();
 	this.appContext.contentComp.changeRef.detectChanges();

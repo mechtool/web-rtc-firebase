@@ -11,30 +11,13 @@ const uuid = require('uuid/v1');
 @Injectable({
   providedIn: 'root'
 })
-/*
-iceServers: [{
-   urls: [ "stun:eu-turn3.xirsys.com" ]
-}, {
-   username: "bg1V1XOWQtvhObCaa4IYix91GcJa4oUeD5u5cqwStfY_trcca8J332_MyWF2qsQHAAAAAFzfvPpzaXdh",
-   credential: "d0d52690-7943-11e9-ba1e-72c9c257b255",
-   urls: [
-       "turn:eu-turn3.xirsys.com:80?transport=udp",
-       "turn:eu-turn3.xirsys.com:3478?transport=udp",
-       "turn:eu-turn3.xirsys.com:80?transport=tcp",
-       "turn:eu-turn3.xirsys.com:3478?transport=tcp",
-       "turns:eu-turn3.xirsys.com:443?transport=tcp",
-       "turns:eu-turn3.xirsys.com:5349?transport=tcp"
-   ]
-}]
-*/
 
 export class WebRtcService {
 
-    public pcMessage : PcMessage;
-    public collections = ['rtc/offers/',  'rtc/answers/'];
-    public statusColors = {new : '#59c289', open : '#3f8e54', connecting : '#3ea8f4', connected : '#5152f1',
-	disconnected : '#e68b51', closing : '#dd6191', closed : '#d13a31', failed : '#c5c5c5',
-	message : '#e3c200', close : '#c5c5c5', error : '#dd6191'};
+    public pcMessage : PcMessage = new PcMessage();
+    public collections = ['rtc/offers/',  'rtc/answers/'];  /// 'rtc/candidates'
+    public statusColors = {new : '#58ad4e', open : '#3f8e54', connecting : '#4351d9', connected : '#0e0ca5', message : '#00afb6',
+	disconnected : '#959595', closing : '#dd4c48', closed : '#d10900', failed : '#959595', close : '#959595', error : '#c70900'};
     public configuration = {
         iceServers: [{
 	    urls: [ "stun:eu-turn3.xirsys.com" ]
@@ -75,21 +58,21 @@ export class WebRtcService {
 	      return res.v;
 	  });*/
 	  //Запуск сервиса должен обеспечить подключения всех трех способов получения сообщений: текстовый, аудио, видео
-	  this.collections.forEach(coll => {
-	      //подписка на активные предложения и ответы
-	      this.database.getDatabaseRef(coll + this.appContext.appUser.uid).orderByChild('status').equalTo("active").on('value', this.onSignal.bind(this))
-	  });
+	 this.collections.forEach(coll => {
+	     //подписка на активные предложения ответы и кандидаты, если настрока оптимизации включена
+	     this.database.getDatabaseRef(coll + this.appContext.appUser.uid).orderByChild('status').equalTo("active").on('value', this.onSignal.bind(this))
+	 })
       }catch (e) {
       
       }
     }
     
-    checkComponentCollection() : Promise<any>{
+    checkComponentCollection(message = 'Новое сообщение закроет текущее!') : Promise<any>{
 	return new Promise(async (res, rej) => {
 	    let result : any = {received : true, messId : uuid()};
 	    if(this.appContext.webRtcComponent && Object.keys(this.pcMessage.pcCollection).length){
 		//Отобразить предупреждение об удалении текущего сообщения
-		result = await this.showUserNotification({messId : uuid(), sender : {photoUrl : '', imgColor : '', message : 'Новое сообщение закроет текущее!'}});
+		result = await this.showUserNotification({messId : uuid(), sender : {photoURL : '/assets/app-shell/attention-24px.svg', imgColor : '', message : message}});
 	    }
 	    res(result);
 	})
@@ -114,18 +97,21 @@ export class WebRtcService {
 		    ntResult = await that.showUserNotification(desc);
 		    //Выбран прием входяшего сообщения, нужно проверить общается ли пользователь с кем нибудь, т.е существует ли компонент сообщения
 		    if(this.appContext.webRtcComponent && Object.keys(this.pcMessage.pcCollection).length){
-			//Отобразить предупреждение об удалении текущего сообщения
-			ntResult = await that.showUserNotification({messId : uuid(), sender : {photoUrl : '', imgColor : '', message : 'Новое сообщение закроет текущее!'}});
+			//Отобразить второе предупреждение об удалении текущего сообщения
+			ntResult = await that.showUserNotification({messId : uuid(), sender : {photoURL : '/assets/app-shell/attention-24px.svg', imgColor : '', message : 'Новое сообщение закроет текущее!'}});
+			//Если новое сообщение или предупреждение принимается, то удаляем все сообщения
+			//иначе, отправляем на сервер новый статус дескриптора
 			ntResult.received ? this.closeAllMessages() : this.database.setDescriptorStatus({[desc.descType + this.appContext.appUser.uid + '/' + desc.messId] : {status : 'rejected'}});
-			
-		}
+		    }
 		//Устанавливаем выбранный контакт в список контактов в компоненте message
+		    //и создаем экземпляр компонента сообщения через вызов навигации
 		ntResult.received && this.zone.run(() => this.router.navigateByUrl('/content/message')).then(async () => {
 			//Изменение статуса сообщения  на принятое
 			await this.database.setDescriptorStatus({[desc.descType + this.appContext.appUser.uid + '/' + desc.messId] : {status : 'received'}});
-		    
+		   //синхронно устанавливаем коллекцию контактов для возможности последующего запуска новых соединений
+		   //через эту коллекцию контактов
 		    await new Promise((res, rej) => {
-		        this.communications.base.next({type : 'new-contacts', contacts : setArrayContacts.bind(this, desc)(), complete : res}) ;
+		        this.communications.base.next({type : 'new-contacts', contacts : setArrayContacts.bind(this, desc)(), messType : desc.messageType, complete : res}) ;
 		    });
 		     this.appContext.webRtcComponent.changeRef.detectChanges();
 		    //предложение (только одно, остальные нужно принудительно закрыть) принято
@@ -140,10 +126,17 @@ export class WebRtcService {
 			//установили локальный дескриптор и создали свой ответ (answer)
 			await pc.setLocalDescription(await pc.createAnswer());
 			//установка удаленных кандидатов
-			this.setCandidates(pc, desc.candidates);
+		//	this.setCandidates(pc, desc.candidates);
 			//формирование ответа на приглашение, после которого вызывается меод формирования кандидатов
 			//в котором и происходит отправка дескриптора на сервер
-			pcItem.desc = new Answer({messId : uuid() , status : 'active',   uid : this.appContext.appUser.uid, messType : desc.messageType,  descType : this.collections[1], contact : pcItem.contact, receivers : {[desc.sender.uid] : desc.sender}, sender : this.appContext.appUser, desc: JSON.stringify(pc.localDescription), candidates : []});
+			pcItem.desc = new Answer({messId : desc.messId , status : 'active',   uid : this.appContext.appUser.uid, messType : desc.messageType,  descType : this.collections[1], contact : pcItem.contact, receivers : {[desc.sender.uid] : desc.sender}, sender : this.appContext.appUser, desc: JSON.stringify(pc.localDescription), candidates : []});
+			//Отправка дескриптора на сервер
+			await this.database.sendDescriptor(pcItem.desc);
+			//Ссылка на функцию сигнализации для дальнейшего удаления ее вызова
+			pcItem.onSignalCandidates = this.onSignal.bind(this);
+			//Подписка на получение удаленных кандидатов
+			//подписка на получение кандидатов ответов на отправленное предложение
+			this.database.getDatabaseRef('rtc/candidates/' + this.appContext.appUser.uid ).orderByChild('descId').equalTo(pcItem.desc.messId).on('value', pcItem.onSignalCandidates);
 		    }
 		});
 	    }catch (e) { //Выход по ошибке
@@ -151,20 +144,28 @@ export class WebRtcService {
 		    await this.database.setDescriptorStatus({[desc.descType + this.appContext.appUser.uid + '/' + desc.messId] : {status : 'rejected'}});
 		}
 	    }) ;
-	}else if(descriptors.descType.indexOf('answers') >= 0 && descriptors.desc){
+	}else if(descriptors.descType ==='answers' && descriptors.desc){
 	    //пришедшие через сеть ответы не записываем в элемент pcConnection
 	    //для определения инициатора соединения
 	    descriptors.desc.forEach(async d => {
 		//Установка удаленного дескриптора из ответа и установка удпленных кандидатов
 		let pcItem = that.getPcItem(d.uid);
 		pcItem && pcItem.pc && await pcItem.pc.setRemoteDescription(JSON.parse(d.desc)).then(()=>{
-		    //Изменение статуса дескриптора
+		    //Изменение статуса дескриптора - принят
 		    this.database.setDescriptorStatus({[d.descType + this.appContext.appUser.uid + '/' + d.messId] : {status : 'received'}}) ;
-		    //Установка удаленных кандидатов
-		    this.setCandidates(pcItem.pc, d.candidates);
+		    
+		    //Установка удаленных кандидатов, если
+		   // this.setCandidates(pcItem.pc, d.candidates);
 		});
 	    });
-	    
+	}else if(descriptors.descType === 'candidates'){
+	    //получаем активные кандидаты
+	    descriptors.desc.forEach(d => {
+		let pcItem = that.getPcItem(d.uid);
+		this.setCandidates(pcItem.pc, d);
+		//После установки кандидата записать в базу его статус  "received"
+		this.database.setDescriptorStatus({[d.descType + d.contact.uid + '/' + d.messId] : {status : 'received'}})
+	    })
 	}
 	
 	function setDescriptors(val, type) {
@@ -179,42 +180,45 @@ export class WebRtcService {
     }
     
     closeAllMessages(){
-        let messageType = this.appContext.webRtcComponent.messageType;
 	//Отчистка коллекции контактов и коллекции pcMap  с закрытием соединений
 	//отправка данных на сервер о закрытых соединениях
-	this.appContext.webRtcComponent.messageContacts.next([]);
 	for(let key in this.pcMessage.pcCollection){
 	    //закрытие всех пир соединений
 	    let pcItem = this.pcMessage.pcCollection[key],
 		desc = pcItem.desc ;
+	    //Снятие ранее установленных обработчиков на получения кандидатов
+	    this.database.getDatabaseRef('rtc/candidates/' + this.appContext.appUser.uid ).orderByChild('descId').equalTo(pcItem.desc.messId).off('value', pcItem.onSignal);
+	    //Закрыть соединение
 	    pcItem.pc.close() ;
-	    desc && this.database.setDescriptorStatus({[desc.descType + (pcItem.initializer ? desc.contact.uid : this.appContext.appUser.uid) + '/' + desc.messId] : {status : 'rejected'}});
+	    desc && this.database.setDescriptorStatus({[desc.descType + (pcItem.initializer ? desc.contact.uid : this.appContext.appUser.uid) + '/' + desc.messId] : {status : 'refused'}});   //refused
 	    delete this.pcMessage.pcCollection[key];
 	}
 	//отчистка всей коммуникации
 	this.communications.base.next({type  : 'initialize'});
-	//принудительно устанавливаем отсутствие пиров
-	this.appContext.webRtcComponent.connecting = false;
-	this.appContext.webRtcComponent.noPeers = true;
-	
-	if(messageType === 0){//текстовые
-	    //Отчистка всех сообщений в интерфейсе
-	    this.appContext.webRtcComponent.textMessages = [];
-	    //Отчистка поля ввода текста
-	    this.appContext.webRtcComponent.messageGroup.get('textControl').setValue('');
-	    
-	    
+	if(this.appContext.webRtcComponent){ //если компонент существует
+	    //отчистка коллекции контактов сообщения
+	    this.appContext.webRtcComponent.messageContacts.next([]);
+	    //отключение отображения прогрессбара соединения
+	    this.appContext.webRtcComponent.connecting = false;
+	    //принудительно устанавливаем отсутствие пиров
+	    this.appContext.webRtcComponent.noPeers = true;
 	}
+
+	if(this.appContext.textMessageComponent){
+	    //Отчистка всех сообщений в интерфейсе
+	    this.appContext.textMessageComponent.textMessages = [];
+	    //Отчистка поля ввода текста
+	    this.appContext.textMessageComponent.messageGroup.get('textControl').setValue('');
+	}
+	//Освобождение кнопок интерфейса от блокировки
+	this.appContext.contentComp.disableButton = false;
 	//обновляем интерфейс
-	this.appContext.webRtcComponent.changeRef.destroyed || this.appContext.webRtcComponent.changeRef.detectChanges();
+	this.appContext.contentComp.changeRef.detectChanges();
     }
     
-    setCandidates(pc, candidates){
-	candidates.forEach(cand => {
-	    pc.addIceCandidate(JSON.parse(cand.desc))
-	})
+    setCandidates(pc, candidate){
+	pc.addIceCandidate(JSON.parse(candidate.desc))
     }
-    
     
     showUserNotification(payload){
 	return new Promise((res, rej)=> {
@@ -229,11 +233,10 @@ export class WebRtcService {
 		console.log('cancel');
 		res(unsubscribe.bind(this, subs, messId, false)());
 	    }));
-	    noteRef.changeDetectorRef.detectChanges();
 	}) ;
 	
 	function unsubscribe (subs, messId, received) {
-	    this.notificationService.deleteSnackNotification(messId);
+	    this.notificationService.deleteNotification(messId);
 	    subs.forEach(s => s.unsubscribe()) ;
 	    return {received : received, messId : messId};
 	}
@@ -280,7 +283,7 @@ export class WebRtcService {
 	//если соединение активно, передать сообщение
 	let text , pc = pcItem.pc, channel = pcItem.channel;
 	if(pc && channel && channel.readyState !== 'close' && channel.readyState !== 'closing' && pc.connectionState === 'connected'){
-	    text =  this.appContext.webRtcComponent.messageGroup.get('textControl').value;
+	    text =  this.appContext.textMessageComponent.messageGroup.get('textControl').value;
 	    channel.send(text);
 	    //Отрпавить сообщение на сервер / локальное хранилище, а в конце сессии отправить на сервер для
 	    //хранения / архивирования
@@ -295,7 +298,9 @@ export class WebRtcService {
 	let desc = pcItem.desc || pcItem;
 	let message = new Message({text : pcItem.messageText , messageId : uuid(),  sender : pcItem.sender, messageType : desc.messageType, receivers : desc.receivers }) ;
 	//добавить новое текстовое сообщение в коллекцию текстовых сообщений компонента webtrc
-	this.appContext.webRtcComponent.textMessages.unshift(message);
+	this.appContext.textMessageComponent.textMessages.unshift(message);
+	//Прокрутить скролл кверху
+	this.appContext.textMessageComponent.textBlock.nativeElement.scroll(0 ,0);
 	//сообщение отправлено, нужно отчистить поле ввода
 	this.appContext.contentComp.changeRef.detectChanges();
     }
@@ -307,7 +312,6 @@ export class WebRtcService {
 	context.that.renderMessage(context.pcItem) ;
 	context.pcItem.contact.statusColor = context.that.statusColors[event.type];
 	context.that.checkConnections();
-	context.that.appContext.contentComp.changeRef.detectChanges();
     }
     
     onCloseChannel(event){
@@ -315,13 +319,12 @@ export class WebRtcService {
 	//Предупредить пользователя о закрытие канала сообщения
 	context.pcItem.contact.statusColor = context.that.statusColors[event.type];
 	context.that.checkConnections();
-	context.that.appContext.contentComp.changeRef.detectChanges();    }
+    }
     
     onErrorChannel(event){
 	let context = <any>this;
 	context.pcItem.contact.statusColor = context.that.statusColors[event.type];
 	context.that.checkConnections();
-	context.that.appContext.contentComp.changeRef.detectChanges();
     }
     
     checkConnections(){
@@ -330,9 +333,10 @@ export class WebRtcService {
             //пиры отсутствуют
             return this.appContext.webRtcComponent.noPeers = false ;
 	}
-        //вычисление пиров на основе статуса
-	this.appContext.webRtcComponent.noPeers = col.some((pcItem : any) => /#59c289|#3f8e54|#3ea8f4|#5152f1|#e3c200/.test(pcItem.contact.statusColor)) ;
+        //вычисление отсутствие  пиров на основе статуса, перебором всех элементов соединения
+	this.appContext.webRtcComponent.noPeers = col.some((pcItem : any) => /#58ad4e|#3f8e54|#4351d9|#0e0ca5|#00afb6/.test(pcItem.contact.statusColor)) ;
 	this.appContext.webRtcComponent.connecting = (!this.appContext.webRtcComponent.noPeers) && col.length;
+	this.appContext.contentComp.changeRef.detectChanges();
     }
     
     startConnection(options){
@@ -346,25 +350,36 @@ export class WebRtcService {
 	if(!Object.keys(this.pcMessage.pcCollection).length && contacts.length){
 	    //Отключаем кнопку отправки сообщения
 	    this.appContext.webRtcComponent.noPeers = false;
+	    //Отключения кнопок интерфейса для предотвращения перехода на другие страницы до окончания сообщения
+	    this.appContext.contentComp.disableButton = true;
 	    //Включаем индикатор соединения (mat-toolbar);
 	    this.appContext.webRtcComponent.connecting = true;
+	    //Запуск счетчика времени ожидания вызова. Если ни один контакт не ответил,
+	    // тогда закрываем сообщение
+	    let t = window.localStorage.getItem('timeout'),
+		timeout = setTimeout(()=>{
+	        //Если пиров нет, тогда все закрыть;
+	        if(!this.appContext.webRtcComponent.noPeers) this.closeAllMessages();
+	        clearTimeout(timeout);
+	        }, +t * 60000 ) ;
+	    //-----------------------------------------------------------------------------------
+	    
 	    contacts.forEach(cont => {
-		let pcItem = {uid : cont.uid, mid: this.pcMessage.mid, contact : cont, pc : new RTCPeerConnection(this.configuration), initializer : options.initializer, messageType : options.messageType, channel : undefined, stream : undefined ,view : undefined, desc : undefined};
+		let pcItem = {uid : cont.uid, mid: this.pcMessage.mid, contact : cont, pc : new RTCPeerConnection(this.configuration), initializer : options.initializer, messageType : options.messageType, channel : undefined, stream : undefined , srcObject : undefined, desc : undefined};
 		this.pcMessage.pcCollection[cont.uid]  =  pcItem;
 	  //Изменение статуса контакта при изменении статуса соединения
 		pcItem.pc.onconnectionstatechange = (event)=>{
-			pcItem.contact.statusColor = this.statusColors[(event.target as RTCPeerConnection).connectionState];
+		    pcItem.contact.statusColor = this.statusColors[(event.target as RTCPeerConnection).connectionState];
 		    this.checkConnections();
-		    this.appContext.webRtcComponent.changeRef.detectChanges();
 	    };
 	    //Обработка кандидатов соединения
 	    pcItem.pc.onicecandidate = onIceCandidate.bind(this, pcItem); //подписались на получения кандидатов
 	    //изменение статуса собирания кандидатов
-	    pcItem.pc.onicegatheringstatechange = onIceGatherStateChange.bind(this, pcItem);
+	    //pcItem.pc.onicegatheringstatechange = onIceGatherStateChange.bind(this, pcItem);
 	    //Если пользователь является инициатором соединения
 	    if(options.initializer){
-	      //событие необходимости согласования соединения возникает сразу после формирования
-	      //локального дескриптора и актуально только на стороне инициатора соединения
+	      //событие необходимости согласования соединения
+		// актуально только на стороне инициатора соединения
 	      pcItem.pc.onnegotiationneeded = onNegotiation.bind(this, pcItem);
 	    }
 	    
@@ -372,44 +387,38 @@ export class WebRtcService {
 		    if (options.initializer) {
 			  // создан экземпляр чата открыть его настроку
 			  pcItem.channel = pcItem.pc.createDataChannel(cont.uid);
-			  this.setupChat(pcItem);
 			  ///отправка первого сообщения через буфер, при отсутствии открытого канала
 			  //this.sendTextMessage(pcItem);
 			  ///здесь происходит отправка первого сообщения, которое помещается в буффер,
 			  //если соединение ещё не установленно и отправиться автоматически после открытия соединения
 			  // channel.send('srt')
-		    
+			this.setupChat(pcItem);
 		    } else {
 		      // получен экземпляр чата, открыть его настройку
 			  pcItem.pc.ondatachannel = (event) => {
 			      pcItem.channel = event.channel;
 			      pcItem.contact.statusColor = this.statusColors['open'];
-			      this.appContext.webRtcComponent.changeRef.detectChanges();
 			      this.checkConnections();
 			      this.setupChat(pcItem);
 			  };
 		    }
-	      }else if(options.messageType === 'video' || options.messageType === 'audio'){
-	    
-		  /*	      pc.ontrack = onTrack;
-				
-				(async ()=> {
-				    let video = messageType === 'video';
+	    }else if(options.messageType === 'video' || options.messageType === 'audio'){
+	                      //Обработчик получения треков от удаленных пиров
+		  	      pcItem.pc.ontrack = onTrack.bind(this, pcItem);
+		  	      (async ()=> {
 				    try { //Получаем локальный поток, отображаем его в видео элементе, если это видеотип
 					//или вставляем его в аудиоэлемент и убираем громкость, если это аудио тип, а затем
 					//добавлякм все треки в PC
-					// get a local stream, show it in a self-view and add it to be sent
-					let stream =  pcItem.stream = await navigator.mediaDevices.getUserMedia({audio: true, video: video});
-					stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+					let stream =  pcItem.stream = await navigator.mediaDevices.getUserMedia({audio: true, video:  options.messageType === 'video'});
+					stream.getTracks().forEach((track) => pcItem.pc.addTrack(track, stream));
 					//selfView может быть как ссылкой на объект video так и сслылкой на объект audio и если ссылка на
 					//объект-источник занята, её переписывать не надо.
-					//selfView.srcObject || (selfView.srcObject = stream);
+					this.appContext.webRtcComponent.selfSrcObject || (this.appContext.webRtcComponent.selfSrcObject = stream);
 				    } catch (err) {
 					console.error(err);
 				    }
-				})() ;*/
-	      }
-	      
+				})() ;
+	      		}
 	    })
 	}else {//выполняется при отправке только текстовых сообщений по существующему каналу связи
 		let hasConnection;
@@ -446,6 +455,14 @@ export class WebRtcService {
 	      //received - принят (устанавливается принимающей стороной)
 	      //refused - сброшен и прерван отправляющей стороной (при изменении типа сообщения)
 	      pcItem.desc = new Offer({messId : uuid() , uid : this.appContext.appUser.uid, messageType : pcItem.messageType, contact : pcItem.contact,  receivers : getContactsObject(), status : 'active',  descType : this.collections[0], sender : this.appContext.appUser, desc: JSON.stringify(pcItem.pc.localDescription), candidates : []});
+	      //Отправка предложения сигнализации
+	      await this.database.sendDescriptor(pcItem.desc);
+	      //отправка Push-Notification получателю.
+	      await this.messaging.sendNotificationMessage(pcItem.desc);
+	      //Ссылка на функцию сигнализации для дальнейшего удаления ее вызова
+	      pcItem.onSignal =  this.onSignal.bind(this);
+	      //подписка на получение кандидатов ответов на отправленное предложение
+	      this.database.getDatabaseRef('rtc/candidates/' + this.appContext.appUser.uid ).orderByChild('descId').equalTo(pcItem.desc.messId).on('value', pcItem.onSignal)
 
 	  } catch (err) {
 	      console.error(err);
@@ -453,7 +470,7 @@ export class WebRtcService {
       }
   
       function onIceGatherStateChange(pcItem, event){
-	    if(event.target.iceGatheringState === 'complete'){
+	    if(window.localStorage.getItem('optimisation') === 'true' && event.target.iceGatheringState === 'complete'){
 		if(pcItem.desc.candidates && pcItem.desc.candidates.length){
 		    //Отправить предложение в базу, а затем запустить push messages для каждого получателя
 		    this.database.sendDescriptor(pcItem.desc).then(desc => {
@@ -465,21 +482,31 @@ export class WebRtcService {
 	    }
       }
   
+	async function onTrack(pcItem, event){
+	    //Не устанавливаем свойство, если оно уже установлено
+	    if (pcItem.pc.srcObject) return;
+	    pcItem.pc.srcObject = event.streams[0];
+	}
+	
       async function onIceCandidate(pcItem, event) {
 	  //при формировании своих кандидатов, отправляем их на сервер, если сформированные кандидаты напрвлены инициатором сообщения, тогда заполняется коллекция получателей (receivers), иначе - она остается пустой или формируются получатели по специальной структуре формирования получателей для множественных сессий
 	  let target = pcItem.desc;
 	  if (event.candidate && target) {//если кандидат не null
 	      let candidate = new Candidate({
 		  messId: uuid(),
+		  descId : target.messId,
 		  messageType: 'candidate',
 		  uid: this.appContext.appUser.uid,
-		  descType: 'icecandidate',
+		  descType: 'rtc/candidates/',
 		  contact : pcItem.contact,
 		  receivers: {[ pcItem.contact.uid]:  pcItem.contact},
 		  sender: this.appContext.appUser,
-		  desc: JSON.stringify(event.candidate)
+		  desc: JSON.stringify(event.candidate),
+		  status : 'active',
 	      });
-	      target.candidates.push(candidate);
+	       //target.candidates.push(candidate);
+	      //Отправить кандидата через сигнализацию
+	       await this.database.sendDescriptor(candidate);
 	  }/*else if(!event.candidate){
 	      //Отправить предложение в базу, а затем запустить push messages для каждого получателя
 	      if(target.candidates && target.candidates.length){

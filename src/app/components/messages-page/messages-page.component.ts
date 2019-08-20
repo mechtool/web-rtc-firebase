@@ -29,7 +29,7 @@ export class MessagesPageComponent implements OnInit {
 	]
     ];
     
-    constructor() { }
+    constructor() {}
     
     ngOnInit() {
     }

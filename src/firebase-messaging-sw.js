@@ -58,10 +58,12 @@ self.addEventListener('notificationclose', onCloseNotification);
 messaging.setBackgroundMessageHandler(function(payload) {
 	console.log('[firebase-messaging-sw.js] Получено сообщение с сервера');
 	// Здесь идет настройка сообщения
-	var notificationTitle = 'Новое сообщение.';
-	var notificationOptions = {
-/*		body: 'Входящее сообщение от '+ (sender.name || sender.displayName || sender.email || sender.phoneNumber),
-		icon: icons[payload.data.messageType],*/
+	var notificationTitle = 'Новое сообщение.',
+		sender = JSON.parse(payload.data.sender),
+		notificationOptions = {
+		body: 'Входящее сообщение от '+ (sender.name || sender.displayName || sender.email || sender.phoneNumber),
+		icon: icons[payload.data.messageType],
+		data : {messId : payload.data.messId},
 		actions: [
 			{action: 'receive', title: 'Принять'},
 			{action: 'reject', title: 'Пропустить'}]
@@ -70,6 +72,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
 });
 
 function onClickNotification(event) {
+	//event.notification.data.messId - здесь идентификатор предложения, которого пользователь согласился принять
 	if (event.action === 'receive') {
 		self.clients.openWindow('https://web-rtc-firebase-bd8fe.firebaseapp.com/');
 	}
@@ -82,8 +85,7 @@ function onCloseNotification(event){
 
 // [END background_handler]
 
-/*
-var cacheName = 'web-rtc-cache';
+/*var cacheName = 'web-rtc-cache';
 var filesToCache = ['/'];//файлы оболочки приложения
 //при установки сервисного рабочего заполняем кэш
 //importScripts('/cache-polyfill.js');
@@ -139,6 +141,5 @@ function update(request) {
 			return cache.put(request, response);
 		});
 	});
-}
-*/
+}*/
 

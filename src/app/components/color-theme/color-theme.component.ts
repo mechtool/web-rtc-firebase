@@ -10,10 +10,10 @@ export class ColorThemeComponent implements OnInit {
     
     
     public colorItems = [
-	{colorClass : 'first-theme', color : 'rgb(255, 214, 0)', active : false},
-	{colorClass : 'second-theme', color : 'rgb(30, 136, 229)', active : true},
-	{colorClass : 'third-theme', color : 'rgb(0, 150, 136)', active : false},
-	{colorClass : 'forth-theme', color : 'rgb(63, 81, 181)', active : false},
+	{colorClass : 'first-theme', color : 'rgb(255, 214, 0)', active : false, iconColor : '#000'},
+	{colorClass : 'second-theme', color : 'rgb(30, 136, 229)', active : true, iconColor : '#fff'},
+	{colorClass : 'third-theme', color : 'rgb(0, 150, 136)', active : false, iconColor : '#fff'},
+	{colorClass : 'forth-theme', color : 'rgb(63, 81, 181)', active : false, iconColor : '#fff'},
     ] ;
   constructor(public appComp : AppComponent) { }
   

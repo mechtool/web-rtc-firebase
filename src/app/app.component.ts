@@ -12,9 +12,9 @@ import 'firebase/messaging'
 import {DatabaseService} from "./services/database.service";
 import {Contact} from "./classes/Classes";
 import {MessagingService} from "./services/messaging.servece";
-import {Observable} from "rxjs";
 import {AppContextService} from "./services/app-context.service";
 import {WebRtcService} from "./services/web-rtc.service";
+import {PwaService} from "./services/pwa.service";
 
 firebase.initializeApp(environment.firebaseConfig);
 
@@ -46,7 +46,6 @@ export class AppComponent implements OnInit{
         this.appContext.auth = firebase.auth();
         this.appContext.database = firebase.database();
         this.appContext.firebase = firebase;
-        this.appContext.contactStatus = {};
 	this.appContext.webRtcService = this.webRtcService;
 	this.appContext.auth.onAuthStateChanged(async user => {
             //если пользователь существует, необходимо проверить существования пользователя в базе данных, и если его нет, то создать
@@ -74,7 +73,7 @@ export class AppComponent implements OnInit{
              if(message.type == 'colorTheme'){
                  this.setAppTheme(message.selector)
 	     }
-	})
+	});
     }
     
     setAppTheme(selector){

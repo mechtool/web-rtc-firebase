@@ -3,6 +3,8 @@ import {Contact} from "../../classes/Classes";
 import {DatabaseService} from "../../services/database.service";
 import {Router} from "@angular/router";
 import {CommunicationService} from "../../services/communication.service";
+import {AppComponent} from "../../app.component";
+import {AppContextService} from "../../services/app-context.service";
 
 @Component({
   selector: 'app-contact',
@@ -18,7 +20,8 @@ export class ContactComponent  {
         private database : DatabaseService,
 	private router : Router,
 	public zone : NgZone,
-	public communication : CommunicationService) {}
+	public communication : CommunicationService,
+	public appContext : AppContextService) {}
     
     onDelete(type?){
         type || this.database.deleteContact(this.context);
@@ -28,10 +31,10 @@ export class ContactComponent  {
     
     }
     onNewMessage(){
-        this.zone.run(() => this.router.navigate(['content', 'message'])).then(res => {
-	    this.communication.base.next({type : 'new-contacts', contacts : [this.context]}) ;
-	});
-    
+        //Проверить существование экземпляров компонентов сообщений (текстового, аудио, видео)
+	//Если не одного из сообщений не существует, то переходин на страницу текстового сообщения
+	this.communication.base.next({type : 'new-contacts', contacts : [this.context]}) ;
+	this.appContext.webRtcComponent || this.zone.run(() => this.router.navigate(['content', 'message']));
     }
 
 }

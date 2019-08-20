@@ -1,24 +1,28 @@
 <div class="content-container">
-	<mat-toolbar color="primary">
-		<mat-icon class="contacts-menu" (click)="onClickMenu()" matTooltip="Контакты">menu</mat-icon>
-		<div class="block-button-row" *ngIf="!low599">
-			<button mat-flat-button color="primary" *ngFor="let button of contentButtons" [routerLink]="button.link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{button.text}}</button>
-		</div>
-		<div class="" *ngIf="low599">
-			<button mat-icon-button *ngFor="let button of contentButtons" [routerLink]="button.link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-				<mat-icon>{{button.icon}}</mat-icon>
+	<div class="main-toolbar-progressbar-block"  *ngIf="toolbarProgressVisible">
+		<mat-toolbar color="primary">
+			<mat-icon class="contacts-menu" (click)="onClickMenu()" matTooltip="Контакты">menu</mat-icon>
+			<div class="block-button-row" *ngIf="!low599">
+				<button mat-flat-button color="primary" [disabled]="disableButton" *ngFor="let button of contentButtons" [routerLink]="button.link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{button.text}}</button>
+			</div>
+			<div class="block-button-row" *ngIf="low599">
+				<button mat-icon-button *ngFor="let button of contentButtons" [routerLink]="button.link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"  [disabled]="disableButton">
+					<mat-icon>{{button.icon}}</mat-icon>
+				</button>
+			</div>
+			<span class="example-spacer"></span>
+			<app-contact *ngIf="appComp.appUser" [context]="appComp.appUser" [menuType]="false"></app-contact>
+			<button class="settings-icon" mat-icon-button routerLinkActive="active"  [disabled]="disableButton"  [routerLink]="'/content/settings'">
+				<mat-icon matTooltip="Настройки">settings</mat-icon>
 			</button>
-		</div>
-		<span class="example-spacer"></span>
-		<app-contact *ngIf="appComp.appUser" [context]="appComp.appUser" [menuType]="false"></app-contact>
-		<mat-icon class="settings-icon" (click)="onClickSettings()" [routerLink]="'/content/settings'" matTooltip="Настройки">settings</mat-icon>
-	</mat-toolbar>
-	<mat-progress-bar mode="indeterminate" *ngIf="progressVisible"></mat-progress-bar>
+		</mat-toolbar>
+		<mat-progress-bar mode="indeterminate" *ngIf="progressVisible"></mat-progress-bar>
+	</div>
 	<mat-sidenav-container class="sidenav-container">
 		<mat-sidenav [mode]="sideNavMode" [(opened)]="opened">
 			<app-contact *ngFor="let item of contacts | async" [context]="item" [menuType]="2"></app-contact>
 		</mat-sidenav>
-		<mat-sidenav-content [@routerTransition]="getState(content)">
+		<mat-sidenav-content class="sideNavContent" [@routerTransition]="getState(content)">
 			<router-outlet #content="outlet" ></router-outlet>
 		</mat-sidenav-content>
 	</mat-sidenav-container>

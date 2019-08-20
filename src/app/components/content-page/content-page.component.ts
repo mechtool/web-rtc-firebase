@@ -1,4 +1,15 @@
-import {ChangeDetectorRef, Component, ComponentFactoryResolver, HostListener, OnDestroy, OnInit, ViewChild, ViewContainerRef} from '@angular/core';
+import {
+    AfterViewInit,
+    ChangeDetectorRef,
+    Component,
+    ComponentFactoryResolver,
+    ElementRef,
+    HostListener,
+    OnDestroy,
+    OnInit,
+    ViewChild,
+    ViewContainerRef
+} from '@angular/core';
 import {AppComponent} from "../../app.component";
 import {routerTransition, sideNavListTrigger} from "../../animations/animations";
 import {NavigationCancel, NavigationEnd, NavigationStart, Router } from "@angular/router";
@@ -23,15 +34,19 @@ export class ContentPageComponent implements OnInit, OnDestroy {
     public _contacts = [];
     public subscriptions = [];
     public opened = false;
+    public disableButton = false;// отключение активности кнопок при старте нового сообщения
     public progressVisible = false;
+    public toolbarProgressVisible = true;
     public sideNavMode : 'over' | 'push' | 'side' = 'side' ;
     public contacts : BehaviorSubject<Contact[]> = new BehaviorSubject([]);
     public messages : BehaviorSubject<Contact[]> = new BehaviorSubject([]);
     public users : BehaviorSubject<any> = new BehaviorSubject([]);
     public contentButtons = [
 	{text : 'Сообщения', link : '/content/messages', icon : 'sms_failed'},
-	{text : 'Контакты', link : '/content/contacts', icon : 'group'},
+	{text : 'Контакты', link : '/content/contacts', icon : 'people'},  //how_to_reg   recent_actors
     ];
+    public hardware = {videoInputs : [], audioInputs : [], audioOutputs : [], videoInputSelected : JSON.parse(window.localStorage.getItem('videoInput')), audioInputSelected : JSON.parse(window.localStorage.getItem('audioInput')) , audioOutputSelected : JSON.parse(window.localStorage.getItem('audioOutput'))  };
+    
     @ViewChild('userNotificationView', {read : ViewContainerRef, static: true}) public notificationView : ViewContainerRef;
     @HostListener('window:unload') onUnLoad(){
     //При закрытии окна, выполняется выход с сайта
@@ -42,13 +57,15 @@ export class ContentPageComponent implements OnInit, OnDestroy {
 	public router : Router,
 	public changeRef : ChangeDetectorRef,
 	public messaging : MessagingService,
-	private appContext : AppContextService,
+	public appContext : AppContextService,
 	public database : DatabaseService,
-	private media: BreakpointObserver,
+	public media: BreakpointObserver,
 	public factoryResolver : ComponentFactoryResolver,
     ) {
-    
+        //передача контекста компонента
         this.appContext.contentComp = this;
+        //Установка настроек значений по умолчанию
+	window.localStorage.setItem('timeout', window.localStorage.getItem('timeout') ? window.localStorage.getItem('timeout') : '2');
 	//Подписка на события роутера начала и окончания маршрутизации
 	this.subscriptions.push(this.router.events.subscribe(event => {
 	    if (event instanceof NavigationStart || event instanceof NavigationEnd || event instanceof NavigationCancel) {
@@ -61,7 +78,49 @@ export class ContentPageComponent implements OnInit, OnDestroy {
 	    this.sideNavMode = (sub.matches ? 'over' : 'side');
 	    this.changeRef.markForCheck();
 	}));
+ //------------------------область формирования аппаратных средств------------------------------------------------
+	//получаем все устройства ввода/вывода в os
+	navigator.mediaDevices.enumerateDevices().then(this.gotDevices.bind(this)).catch(this.handleError);
+    }
+    
+    handleError(){
+	//обработка ошибок получения устройств
 	
+    }
+    
+    gotDevices(deviceInfos) {
+	let devices = {"audioinput" : "микрофон", "audiooutput" : "аудиовыход", "videoinput" : "камера"};
+	//получаем все устройства
+	for (let i = 0; i !== deviceInfos.length; ++i) {
+	    const deviceInfo = deviceInfos[i];
+	    if (deviceInfo.kind === 'audioinput') {
+		let text = setText.bind(this, deviceInfo.kind, deviceInfo.label, this.hardware.audioInputs)();
+		checkArray(text, this.hardware.audioInputs) || this.hardware.audioInputs.push({text, deviceInfo});
+	    } else if (deviceInfo.kind === 'audiooutput') {
+		let text = setText.bind(this, deviceInfo.kind, deviceInfo.label, this.hardware.audioOutputs)();
+		checkArray(text, this.hardware.audioOutputs) ||  this.hardware.audioOutputs.push({text,  deviceInfo});
+	    } else if (deviceInfo.kind === 'videoinput') {
+		let text = setText.bind(this, deviceInfo.kind, deviceInfo.label, this.hardware.videoInputs)();
+		checkArray(text, this.hardware.videoInputs) || this.hardware.videoInputs.push({text, deviceInfo});
+	    } else {
+		console.log('Иной тип источника / устройста : ', deviceInfo);
+	    }
+	}
+	//Установка первоначальных значений в элементах mat-select
+	this.hardware.videoInputSelected = this.hardware.videoInputSelected || this.hardware.videoInputs.length ? this.hardware.videoInputs[0] : null;
+	this.hardware.audioInputSelected = this.hardware.audioInputSelected || this.hardware.audioInputs.length ? this.hardware.audioInputs[0] : null;
+	this.hardware.audioOutputSelected = this.hardware.audioOutputSelected || this.hardware.audioOutputs.length ? this.hardware.audioOutputs[0] : null;
+	 //вспомогательные функции
+	function checkArray(text, array) {
+/*	    if(array.length){
+		return array.some(item => item.text === text);
+	    }else return false;*/
+		return false;
+	}
+	function setText(type, label, array) {
+	    return  label ? label.substr(label.lastIndexOf('-') + 1).trim() : (devices[type] + ` ${array.length + 1}`)
+	}
+//--------------------конец области формирования аппаратных средств------------------------------------------------------------
     }
     
     ngOnInit() {
@@ -96,9 +155,6 @@ export class ContentPageComponent implements OnInit, OnDestroy {
         this.subscriptions.forEach(sub => sub.unsubscribe());
     }
     
-    onClickSettings(){
-	
-    }
     onClickMenu(){
       this.opened = !this.opened;
       this.changeRef.detectChanges();

@@ -8,21 +8,21 @@
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue.
-$app-first-primary: mat-palette($mat-yellow, A700);
+$app-first-primary: mat-palette($mat-yellow, 600);
 $app-first-accent:  mat-palette($mat-blue);
 // The warn palette is optional (defaults to red).
 $app-first-warn:mat-palette($mat-red);
 
 $app-second-primary: mat-palette($mat-blue, 600);
-$app-second-accent: mat-palette($mat-yellow, A400, 400, 700);
+$app-second-accent: mat-palette($mat-yellow, 700, 400, 500);
 $app-second-warn : mat-palette($mat-red);
 
 $app-third-primary: mat-palette($mat-teal, 500);
-$app-third-accent: mat-palette($mat-purple, A400, 400, 700);
+$app-third-accent: mat-palette($mat-purple, 700, 400, 500);
 $app-third-warn : mat-palette($mat-red);
 
 $app-forth-primary: mat-palette($mat-indigo, 500);
-$app-forth-accent: mat-palette($mat-cyan, A400, 400, 700);
+$app-forth-accent: mat-palette($mat-cyan, 700, 400, 500);
 $app-forth-warn : mat-palette($mat-red);
 
 // Create the theme object (a Sass map containing all of the palettes).

@@ -8,6 +8,9 @@
       },
       "answers": {
         ".indexOn": ["status"]
+      },
+      "candidates" : {
+        ".indexOn": ["descId"]
       }
     }
   }

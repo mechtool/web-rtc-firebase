@@ -4,6 +4,10 @@
     justify-content: space-between;
     height: 100%;
 }
+.content-container{
+
+    backface-visibility: hidden;
+}
 mat-sidenav-container{
   flex: auto;
 }
@@ -11,8 +15,12 @@ mat-sidenav{
     width: 250px
 }
 .settings-icon{
-    outline: none;
     margin-left: 16px;
+}
+.settings-icon mat-icon{
+    outline: none;
+    position: relative;
+    top: -2px;
 }
 .contacts-menu{
     margin-right: 8px;
@@ -30,4 +38,7 @@ mat-sidenav{
     display: flex;
     flex-direction: column;
     justify-content: center;
+}
+.sideNavContent{
+    overflow: hidden!important;
 }

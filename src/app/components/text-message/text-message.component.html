@@ -1,0 +1,13 @@
+<form novalidate class="message-container" [formGroup]="messageGroup">
+	<mat-form-field class="text-container" [appearance]="'outline'">
+		<mat-label>Текст сообщения</mat-label>
+		<textarea matInput cdkTextareaAutosize formControlName="textControl" ></textarea>
+		<mat-error class="errors-block">
+			<mat-error *ngIf="messageGroup.get('textControl').errors && messageGroup.get('textControl').errors.required">Обязательный</mat-error>	&#160;
+			<mat-error *ngIf="messageGroup.get('textControl').errors && messageGroup.get('textControl').errors.contactList">Список контактов пуст</mat-error>
+		</mat-error>
+	</mat-form-field>
+	<div #textBlock  class="text-messages-container"  [style.maxHeight]="heightTextBlock">
+		<app-message-item *ngFor="let item of textMessages" [context]="item"></app-message-item>
+	</div>
+</form>

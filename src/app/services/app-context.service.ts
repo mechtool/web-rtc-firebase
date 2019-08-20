@@ -11,13 +11,14 @@ export class AppContextService {
     public database;
     public messaging;
     public contentComp;
-    public contactStatus;
     public notifications = [];
     public notificationView ;
     public contentResolver ;
-    public messageComp;
     public webRtcService;
     public webRtcComponent;
+    public textMessageComponent;
+    public beforeInstallPromptEvent;
+    public installScreenButton = true;
     
-  constructor() { }
+    constructor() { }
 }

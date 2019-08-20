@@ -41,8 +41,14 @@ export class DatabaseService {
     }
     
     setDescriptorStatus(update){
-        return Promise.all(Object.keys(update).map(key => this.getDatabaseRef(key).orderByChild('status').equalTo("active").ref.update(update[key])))
-
+	Object.keys(update).forEach(key => {
+	    this.getDatabaseRef(key).once('value').then((snap)=> {
+	        let value = snap.val();
+		if(value && value.status === 'active') {
+		    snap.ref.update(update[key]);
+		}
+	    })
+	})
     }
     
     setMessagingToken(token){

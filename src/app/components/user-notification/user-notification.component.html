@@ -1,7 +1,13 @@
 <div class="notification-container" >
-	<span class="message-text">{{this.context.message || 'Сообщение от '}}</span>
 	<app-contact class="app-contact" [context]="context" [menuType]="0"></app-contact>
+	<span class="message-text">{{this.context.message || 'Новое сообщение'}}</span>
 	<span class="example-spacer"></span>
-	<button mat-raised-button (click)="onReceive()">Принять</button>
-	<button mat-raised-button (click)="onCancel()">Отклонить</button>
+	<div class="button-block">
+		<button mat-icon-button (click)="onReceive()">
+			<mat-icon style="color: darkgreen">check</mat-icon>
+		</button>
+		<button mat-icon-button (click)="onCancel()">
+			<mat-icon style="color: #b70000">close</mat-icon>
+		</button>
+	</div>
 </div>

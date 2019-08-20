@@ -1,9 +1,20 @@
+.settings-container{
+    padding: 12px;
+}
 .settings-entry{
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 8px;
+    height: 40px;
+    cursor: pointer;
+}
+.entry-header{
+    white-space: nowrap;
 }
 .settings-entry:hover{
     background-color: #e3e3e3;
+}
+.timeout-field{
+    width: 100px;
 }

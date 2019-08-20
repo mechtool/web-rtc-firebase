@@ -4,7 +4,57 @@
 		<app-color-theme></app-color-theme>
 	</div>
 	<div class="settings-entry">
+		<div class="entry-header">Время ожидания ответа. Мин.</div>
+		<mat-form-field class="timeout-field">
+			<mat-select [formControl]="timeoutControl" (selectionChange)="onChangeSelect($event)">
+				<mat-option *ngFor="let time of timeout" [value]="time">{{time}}</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+	<div class="settings-entry video-input" (change)="onChangeMessageToggle($event)">
+		<div class="entry-header">Камера</div>
+		<mat-form-field>
+			<mat-label>Использовать камеру</mat-label>
+			<mat-select #videoInput [(value)]="hardware.videoInputSelected">
+				<mat-select-trigger>{{hardware.videoInputSelected?.text}}</mat-select-trigger>
+				<mat-option *ngFor="let video of hardware.videoInputs" [value]="video">{{video.text}}</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+	<div class="settings-entry microphone-input" (change)="onChangeMessageToggle($event)">
+		<div class="entry-header">Микрофон</div>
+		<mat-form-field>
+			<mat-label>Использовать микрофон</mat-label>
+			<mat-select #audioInput [(value)]="hardware.audioInputSelected" >
+				<mat-select-trigger>{{hardware.audioInputSelected?.text}}</mat-select-trigger>
+				<mat-option *ngFor="let micro of hardware.audioInputs" [value]="micro">{{micro.text}}</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+	<div class="settings-entry audio-output" (change)="onChangeMessageToggle($event)">
+		<div class="entry-header">Аудио выход</div>
+		<mat-form-field>
+			<mat-label>Аудио выход</mat-label>
+			<mat-select #audioOutput  [(value)]="hardware.audioOutputSelected">
+				<mat-select-trigger>{{hardware.audioOutputSelected?.text}}</mat-select-trigger>
+				<mat-option  *ngFor="let audio of hardware.audioOutputs" [value]="audio">{{audio.text}}</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+	<div class="settings-entry" (change)="onChangeMessageToggle($event)">
+		<div class="entry-header">Сохранять сообщения</div>
+		<mat-slide-toggle #saveMessages ></mat-slide-toggle>
+	</div>
+	<div class="settings-entry"  (click)="onInstallScreen(addScreen)">
+		<div class="entry-header" >Установить приложение</div>
+		<button #addScreen class="add-screen-icon" mat-icon-button  [disabled]="appContext.installScreenButton">
+			<mat-icon matTooltip="Установить">save_alt</mat-icon>
+		</button>
+	</div>
+	<div class="settings-entry" (click)="onSingOut()">
 		<div class="entry-header">Выход из приложения</div>
-		<mat-icon (click)=" onSingOut()">exit_to_app</mat-icon>
+		<button class="exit-app-icon" mat-icon-button  >
+			<mat-icon >exit_to_app</mat-icon>
+		</button>
 	</div>
 </div>

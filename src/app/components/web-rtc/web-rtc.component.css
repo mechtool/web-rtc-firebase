@@ -2,6 +2,9 @@
     height: 100%;
     position: relative;
 }
+.contacts{
+    margin: 12px;
+}
 .contacts-container{
     display: flex;
     flex-direction: row;
@@ -17,23 +20,18 @@
 .img-container{
     display: flex;
 }
-.typeIcon{
-    color: #7d7d7d;
-}
-.typeIcon.active{
+
+a.active{
     color: #0022cb;
 }
-.text-container{
-    width: 100%;
-    margin-top: 12px;
-}
+
 .message-card{
     flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
 }
-.message-container{
-    height: 100%;
-    position: relative;
-}
+
 .hasContacts{
     color: #bbbbbb;
     cursor: pointer;
@@ -42,9 +40,10 @@
 .close-button{
     margin-left: 8px;
 }
-.errors-block{
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
+.submit-text-button mat-icon{
+    position: relative;
+    left: 3px;
+    top: -2px;
 }
+
 

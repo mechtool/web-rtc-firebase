@@ -1,6 +1,9 @@
 {
   "name": "web-rtc-firebase",
   "version": "0.0.0",
+  "engines": {
+    "node": "8"
+  },
   "scripts": {
     "ng": "ng",
     "lite-server": "lite-server",
@@ -11,9 +14,9 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "bl": "ng build & lite-server",
-    "bp": "ng build --prod",
-    "fbs": "ng build & firebase serve",
-    "fbd": "ng build --prod & firebase deploy",
+    "bp": "ng build --prod --sourceMap=true",
+    "fbs": "ng build --prod --sourceMap=true & firebase serve",
+    "fbd": "ng build --prod --sourceMap=true & firebase deploy",
     "fbb": "ng build & firebase deploy"
   },
   "private": true,
