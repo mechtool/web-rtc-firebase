@@ -4,9 +4,12 @@
 		<img class="img-contact" [style.backgroundColor]="context.imgColor" [src]="context.photoURL">
 	</div>
 	<div class="name-contact">{{context.name || context.displayName || context.email || context.phoneNumber}}</div>
-	<span class="example-spacer"></span>
-	<ng-container *ngIf="menuType" >
-		<button mat-icon-button [matMenuTriggerFor]="appMenu">
+	<span *ngIf="menuType >= 0 " class="example-spacer"></span>
+	<ng-container *ngIf="menuType == -1">
+		<mat-checkbox class="check-contact" #check="matCheckbox" (change)="onChangeCheckbox(check)"></mat-checkbox>
+	</ng-container>
+	<ng-container *ngIf="menuType >= 0" >
+		<button class="menu-button-contact"  mat-icon-button [matMenuTriggerFor]="appMenu">
 			<mat-icon>more_vert</mat-icon>
 		</button>
 		<mat-menu #appMenu="matMenu" [ngSwitch]="menuType">

@@ -4,7 +4,7 @@
 		<app-color-theme></app-color-theme>
 	</div>
 	<div class="settings-entry">
-		<div class="entry-header">Время ожидания ответа. Мин.</div>
+		<div class="entry-header">Время ожидания ответа. Сек.</div>
 		<mat-form-field class="timeout-field">
 			<mat-select [formControl]="timeoutControl" (selectionChange)="onChangeSelect($event)">
 				<mat-option *ngFor="let time of timeout" [value]="time">{{time}}</mat-option>
@@ -43,7 +43,7 @@
 	</div>
 	<div class="settings-entry" (change)="onChangeMessageToggle($event)">
 		<div class="entry-header">Сохранять сообщения</div>
-		<mat-slide-toggle #saveMessages ></mat-slide-toggle>
+		<mat-slide-toggle #saveMessages [disabled]="true"></mat-slide-toggle>
 	</div>
 	<div class="settings-entry"  (click)="onInstallScreen(addScreen)">
 		<div class="entry-header" >Установить приложение</div>

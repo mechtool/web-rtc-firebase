@@ -26,10 +26,21 @@ a.active{
 }
 
 .message-card{
-    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: stretch;
+}
+.message-card.absolute{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    color: white;
+    width: 100%;
+    background: #00000040;
+}
+:host /deep/ .message-card.absolute .contact-container:hover{
+    background: rgba(255, 255, 255, 0.18);
 }
 
 .hasContacts{

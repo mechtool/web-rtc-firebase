@@ -11,8 +11,8 @@ import {FormControl} from "@angular/forms";
 export class SettingsPageComponent implements OnInit, OnDestroy{
     
     public hardware = this.appContext.contentComp.hardware;
-    public timeout = ['1', '2', '3', '4', '5'];
-    public timeoutControl = new FormControl(window.localStorage.getItem('timeout'));
+    public timeout = ['30', '60', '90', '120', '180', '210'];
+    public timeoutControl = new FormControl(window.localStorage.getItem('timeout') || '30');
     @ViewChild('saveMessages', {read : MatSlideToggle, static : true}) public saveMessagesToggle : MatSlideToggle;
     
     constructor(

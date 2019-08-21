@@ -16,12 +16,12 @@
 				</button>
 			</mat-toolbar>
 			<mat-progress-bar mode="indeterminate" *ngIf="connecting"></mat-progress-bar>
-			<div class="message-card">
-				<div class="contacts" >
-					<div class="hasContacts" (click)="onClickContacts()" *ngIf="!messageContacts.value.length">Контакты пока не выбраны....</div>
-					<div class="contacts-container">
-						<app-contact [menuType]="1" *ngFor="let contact of messageContacts | async" [context]="contact" (deletedFromMessage)="deleteContact($event)"></app-contact>
-					</div>
+		</div>
+		<div class="message-card" [ngClass]="{absolute : !appContext.contentComp.toolbarProgressVisible}">
+			<div class="contacts" >
+				<div class="hasContacts" (click)="onClickContacts()" *ngIf="!messageContacts.value.length">Контакты пока не выбраны....</div>
+				<div class="contacts-container">
+					<app-contact [menuType]="1" *ngFor="let contact of messageContacts | async" [context]="contact"></app-contact>
 				</div>
 			</div>
 		</div>

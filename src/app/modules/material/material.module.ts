@@ -11,7 +11,7 @@ import {
     MatSelectModule,
     MatProgressBarModule,
     MatMenuModule,
-    MatCardModule, MatAutocompleteModule, MatTabsModule, MatProgressSpinnerModule, MatSlideToggleModule,
+    MatCardModule, MatAutocompleteModule, MatTabsModule, MatProgressSpinnerModule, MatSlideToggleModule, MatCheckboxModule,
 } from "@angular/material";
 import {LayoutModule} from "@angular/cdk/layout";
 
@@ -34,6 +34,7 @@ import {LayoutModule} from "@angular/cdk/layout";
       MatTabsModule,
       MatProgressSpinnerModule,
       MatSlideToggleModule,
+      MatCheckboxModule,
       LayoutModule,
   ] ,
     exports : [
@@ -52,6 +53,7 @@ import {LayoutModule} from "@angular/cdk/layout";
 	MatTabsModule,
 	MatProgressSpinnerModule,
 	MatSlideToggleModule,
+	MatCheckboxModule,
 	LayoutModule,
     ]
 })

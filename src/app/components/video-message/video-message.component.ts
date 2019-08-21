@@ -4,6 +4,7 @@ import {WebRtcService} from "../../services/web-rtc.service";
 import {BehaviorSubject} from "rxjs";
 import {WebRtcComponent} from "../web-rtc/web-rtc.component";
 import {AppContextService} from "../../services/app-context.service";
+import {Location} from "@angular/common";
 
 @Component({
   selector: 'app-video-message',
@@ -18,14 +19,15 @@ export class VideoMessageComponent implements OnInit, AfterViewInit, OnDestroy {
 	{className : 'menu-button', text : 'menu' , listener : this.onMenuClick.bind(this)},
 	{className : 'videocam-toggle-button', text : 'videocam' , listener : this.onVideoToggle.bind(this)},
 	{className : 'microphone-toggle-button', text : 'mic_none' , listener : this.onPhoneToggle.bind(this)},
+	{className : 'close-button', text : 'clear' , listener : this.onCloseMessage.bind(this)},
     ];
     @ViewChild('selfVideo', {read : ElementRef, static : false}) public selfVideo : ElementRef;
     constructor(
         public webRtcService : WebRtcService,
 	public webRtcComp : WebRtcComponent,
-	public renderer : Renderer2,
 	public changeRef : ChangeDetectorRef,
 	public appContext : AppContextService,
+	public location : Location,
 	) {
         this.pcMessage = this.webRtcService.pcMessage;
         this.messageContacts = this.webRtcComp.messageContacts;
@@ -37,6 +39,11 @@ export class VideoMessageComponent implements OnInit, AfterViewInit, OnDestroy {
     
   ngOnInit() {
   }
+    
+    onCloseMessage(){
+	this.appContext.webRtcComponent.onCloseConnection();
+	this.location.back();
+    }
   
   onMenuClick(){
         //Отобразить / скрыть панель контактов
@@ -46,21 +53,23 @@ export class VideoMessageComponent implements OnInit, AfterViewInit, OnDestroy {
   onPhoneToggle(){
       this.toolbarButtons[2].text = this.toolbarButtons[2].text === 'mic_none' ?  'mic_off' :  'mic_none';
       this.selfVideo.nativeElement.srcObject.getAudioTracks().forEach(t => t.enabled = !t.enabled)
-    
-  }
+    }
   
   onVideoToggle(){
       this.toolbarButtons[1].text = this.toolbarButtons[1].text === 'videocam' ?  'videocam_off' :  'videocam';
-      this.selfVideo.nativeElement.srcObject.getVideoTracks().forEach(t => t.enabled = !t.enabled)
+      this.selfVideo.nativeElement.srcObject.getVideoTracks().forEach(t => {
+          let settings = t.getSettings();
+          t.enabled = !t.enabled
+      })
   }
   
     onClickMenuButton(){
     }
-    
+
     ngOnDestroy(){
         //Останавливаем все треки
       let stream = this.selfVideo.nativeElement.srcObject;
-      stream && stream.getVideoTracks().forEach(track => track.stop());
+      stream && stream.getTracks().forEach(track => track.stop());
       //Включаем отображение основного тулбара и прогрессбара
       this.appContext.contentComp.toolbarProgressVisible = true;
   }

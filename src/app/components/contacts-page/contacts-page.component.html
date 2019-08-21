@@ -1,6 +1,6 @@
 <div class="contacts-container">
 	<app-search></app-search>
-	<mat-card>
+	<mat-card class="contacts-card">
 		<app-contact *ngFor="let item of contacts | async" [context]="item" [menuType]="3"></app-contact>
 	</mat-card>
 </div>

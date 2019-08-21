@@ -5,6 +5,7 @@
     justify-content: flex-start;
     align-items: center;
     padding: 2px;
+    height: 40px;
 }
 .mark-img-container{
     display: flex;
@@ -25,4 +26,9 @@
 }
 .name-contact{
     white-space: nowrap;
+}
+mat-checkbox.check-contact{
+    position: absolute;
+    top: 9px;
+    right: 20px;
 }

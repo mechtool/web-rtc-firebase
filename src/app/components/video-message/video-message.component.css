@@ -24,7 +24,7 @@
     background: transparent;
     position: absolute;
     color: white;
-    top: 0;
+    bottom: 0;
     left: 0;
     z-index: 2;
     display: flex;
@@ -45,3 +45,9 @@
      position: absolute;
      z-index: 5;
  }
+.contacts{
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+    color: white;
+}
