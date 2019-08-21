@@ -19,6 +19,7 @@ import {DatabaseService} from "../../services/database.service";
 import {Contact} from "../../classes/Classes";
 import {BehaviorSubject } from "rxjs";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {ContactComponent} from "../contact/contact.component";
 
 @Component({
     selector: 'app-content-page',
@@ -86,6 +87,12 @@ export class ContentPageComponent implements OnInit, OnDestroy {
     handleError(){
 	//обработка ошибок получения устройств
 	
+    }
+    
+    checkSideNav(option){
+	 let cont = this.contacts.value.find(cont  => cont.uid === option.uid);
+	 cont && (cont.checked = option.checked);
+	 this.changeRef.detectChanges();
     }
     
     gotDevices(deviceInfos) {

@@ -113,10 +113,15 @@ export class WebRtcComponent implements OnInit, OnDestroy {
   }
     
     deleteContact(uid){
-	let arr = this.messageContacts.value;
-	arr.splice(arr.findIndex(cont => cont.uid === uid), 1) ;
-	this.messageContacts.next(arr);
-	this.contentComp.changeRef.detectChanges();
+	let arr = this.messageContacts.value,
+	    inx = arr.findIndex(cont => cont.uid === uid);
+	if(inx > -1){
+	    arr.splice(inx, 1) ;
+	    this.messageContacts.next(arr);
+	    //снять checkbox контакта в боковой навигации (mat-sidenav)
+	    this.contentComp.checkSideNav({uid : uid, checked : false}) ;
+	    this.contentComp.changeRef.detectChanges();
+	}
     }
     
     onClickContacts(){

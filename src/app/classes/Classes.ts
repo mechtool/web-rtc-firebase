@@ -10,6 +10,7 @@ export class Contact {
     public imgColor?: string;
     public messToken?: string;
     public statusColor ;
+    public checked : boolean;
     
     
     constructor(user) {
@@ -22,6 +23,7 @@ export class Contact {
 	this.imgColor = user.imgColor || (this.photoURL == '/assets/app-shell/user.svg' ? Contact.getRandomColor() : 'transparent');
 	this.messToken = user.messToken || '';
 	this.statusColor = user.statusColor || '#cbcbcb' ;
+	this.checked = user.checked || false;
     }
     
     static getRandomColor() {
