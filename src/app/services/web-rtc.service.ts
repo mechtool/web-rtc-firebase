@@ -180,24 +180,17 @@ export class WebRtcService {
     }
     
     closeAllMessages(){
-	//Отчистка коллекции контактов и коллекции pcMap  с закрытием соединений
-	//отправка данных на сервер о закрытых соединениях
-	for(let key in this.pcMessage.pcCollection){
-	    //закрытие всех пир соединений
-	    let pcItem = this.pcMessage.pcCollection[key],
-		desc = pcItem.desc ;
-	    //Снятие ранее установленных обработчиков на получения кандидатов
-	    this.database.getDatabaseRef('rtc/candidates/' + this.appContext.appUser.uid ).orderByChild('descId').equalTo(pcItem.desc.messId).off('value', pcItem.onSignal);
-	    //Закрыть соединение
-	    pcItem.pc.close() ;
-	    desc && this.database.setDescriptorStatus({[desc.descType + (pcItem.initializer ? desc.contact.uid : this.appContext.appUser.uid) + '/' + desc.messId] : {status : 'refused'}});   //refused
-	    delete this.pcMessage.pcCollection[key];
-	}
 	//отчистка всей коммуникации
 	this.communications.base.next({type  : 'initialize'});
 	if(this.appContext.webRtcComponent){ //если компонент существует
-	    //отчистка коллекции контактов сообщения
-	    this.appContext.webRtcComponent.messageContacts.next([]);
+	    //отчистка коллекции контактов сообщения, только, если экземпляр PeerConnection существует
+	    //, т.е. существует объект соединения старого сообщения в котором использовались
+	    //контактыы не нужные уже в новом сообщении
+	    if(Object.keys(this.pcMessage.pcCollection).length && this.appContext.webRtcComponent){
+		this.appContext.webRtcComponent.deleteContact(this.appContext.webRtcComponent.messageContacts.value.map(cont => cont.uid))  ;
+		this.appContext.webRtcComponent.messageContacts.next([]);
+	    }
+	    
 	    //отключение отображения прогрессбара соединения
 	    this.appContext.webRtcComponent.connecting = false;
 	    //принудительно устанавливаем отсутствие пиров
@@ -212,6 +205,19 @@ export class WebRtcService {
 	}
 	//Освобождение кнопок интерфейса от блокировки
 	this.appContext.contentComp.disableButton = false;
+	//Отчистка коллекции контактов и коллекции pcMap  с закрытием соединений
+	//отправка данных на сервер о закрытых соединениях
+	for(let key in this.pcMessage.pcCollection){
+	    //закрытие всех пир соединений
+	    let pcItem = this.pcMessage.pcCollection[key],
+		desc = pcItem.desc ;
+	    //Снятие ранее установленных обработчиков на получения кандидатов
+	    this.database.getDatabaseRef('rtc/candidates/' + this.appContext.appUser.uid ).orderByChild('descId').equalTo(pcItem.desc.messId).off('value', pcItem.onSignal);
+	    //Закрыть соединение
+	    pcItem.pc.close() ;
+	    desc && this.database.setDescriptorStatus({[desc.descType + (pcItem.initializer ? desc.contact.uid : this.appContext.appUser.uid) + '/' + desc.messId] : {status : 'refused'}});   //refused
+	    delete this.pcMessage.pcCollection[key];
+	}
 	//обновляем интерфейс
 	this.appContext.contentComp.changeRef.detectChanges();
     }

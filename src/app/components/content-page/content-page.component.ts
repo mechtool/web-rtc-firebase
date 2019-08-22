@@ -89,9 +89,19 @@ export class ContentPageComponent implements OnInit, OnDestroy {
 	
     }
     
-    checkSideNav(option){
-	 let cont = this.contacts.value.find(cont  => cont.uid === option.uid);
-	 cont && (cont.checked = option.checked);
+    checkSideNav(optionArr?){
+	this.contacts.value.forEach(cont => {
+	   if(optionArr){
+	       optionArr.forEach(option => {
+		   let c =  cont.uid === option.uid;
+		   c && (cont.checked = option.checked);
+	       }) ;
+	   }
+	   else{
+	       cont.checked = false;
+	   }
+	});
+
 	 this.changeRef.detectChanges();
     }
     

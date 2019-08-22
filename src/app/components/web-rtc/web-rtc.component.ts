@@ -84,9 +84,11 @@ export class WebRtcComponent implements OnInit, OnDestroy {
   }
   
   ngOnDestroy(){
-    this.onCloseConnection();
-    this.appContext.webRtcComponent = undefined;
-    this.subscribes.forEach(sub => sub.unsubscribe());
+    this.onCloseConnection().then(res => {
+	this.appContext.webRtcComponent = undefined;
+    	this.appContext.contentComp.checkSideNav() ;
+	this.subscribes.forEach(sub => sub.unsubscribe());
+    })
   }
   
     isDisabled(){
@@ -112,16 +114,18 @@ export class WebRtcComponent implements OnInit, OnDestroy {
         this.webRtcService.startConnection({initializer : true, messageType : this.messageType === 0 ? 'text' : this.messageType === 1 ? 'audio' : 'video' });
   }
     
-    deleteContact(uid){
-	let arr = this.messageContacts.value,
-	    inx = arr.findIndex(cont => cont.uid === uid);
-	if(inx > -1){
-	    arr.splice(inx, 1) ;
-	    this.messageContacts.next(arr);
-	    //снять checkbox контакта в боковой навигации (mat-sidenav)
-	    this.contentComp.checkSideNav({uid : uid, checked : false}) ;
-	    this.contentComp.changeRef.detectChanges();
-	}
+    deleteContact(uidArr :Array<string>){
+	let arr = this.messageContacts.value;
+	uidArr.forEach(uid =>{
+	    let inx = arr.findIndex(cont => cont.uid === uid);
+	    if(inx > -1){
+		arr.splice(inx, 1) ;
+		this.messageContacts.next(arr);
+		//снять checkbox контакта в боковой навигации (mat-sidenav)
+		this.contentComp.checkSideNav([{uid : uid, checked : false}]) ;
+	    }
+	});
+	this.contentComp.changeRef.detectChanges();
     }
     
     onClickContacts(){
@@ -129,6 +133,6 @@ export class WebRtcComponent implements OnInit, OnDestroy {
     }
    async onCloseConnection(){
         let result = await this.webRtcService.checkComponentCollection('Закрыть текущее сообщение?');
-	result.received && this.webRtcService.closeAllMessages();
+	if(result.received) this.webRtcService.closeAllMessages();
     }
 }

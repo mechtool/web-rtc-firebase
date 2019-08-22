@@ -24,7 +24,7 @@ export class ContactComponent  {
     
     onDelete(type?){
         type || this.database.deleteContact(this.context);
-        type === 1 && this.appContext.webRtcComponent.deleteContact(this.context.uid);
+        type === 1 && this.appContext.webRtcComponent.deleteContact([this.context.uid]);
     }
     onChange(){
     
@@ -32,11 +32,16 @@ export class ContactComponent  {
     onNewMessage(){
         //Проверить существование экземпляров компонентов сообщений (текстового, аудио, видео)
 	//Если не одного из сообщений не существует, то переходин на страницу текстового сообщения
-	this.communication.base.next({type : 'new-contacts', contacts : [this.context]}) ;
-	this.appContext.webRtcComponent || this.zone.run(() => this.router.navigate(['content', 'message']));
+	let arr = [this.context];
+	if(!this.appContext.webRtcComponent && this.communication.base.value.contacts){
+	  arr = this.communication.base.value.contacts;
+	  arr.push(this.context);
+	}
+	this.communication.base.next({type : 'new-contacts', contacts :  arr}) ;
+	if(!this.appContext.webRtcComponent) this.zone.run(() => this.router.navigate(['content', 'message']));
     }
     onChangeCheckbox(check){
-        check.checked ? this.onNewMessage(): this.appContext.webRtcComponent.deleteContact(this.context.uid);
+        check.checked ? this.onNewMessage(): (this.appContext.webRtcComponent && this.appContext.webRtcComponent.deleteContact([this.context.uid]));
         this.appContext.contentComp.changeRef.detectChanges();
     }
 
