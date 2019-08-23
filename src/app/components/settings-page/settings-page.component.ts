@@ -9,10 +9,11 @@ import {FormControl} from "@angular/forms";
   styleUrls: ['./settings-page.component.css']
 })
 export class SettingsPageComponent implements OnInit, OnDestroy{
-    
     public hardware = this.appContext.contentComp.hardware;
     public timeout = ['30', '60', '90', '120', '180', '210'];
-    public timeoutControl = new FormControl(window.localStorage.getItem('timeout') || '30');
+    public timeoutControl = new FormControl(window.localStorage.getItem('timeout'));
+    public saveMessageControl = new FormControl(JSON.parse(window.localStorage.getItem('saveMessages')));
+    public useNotificationControl = new FormControl(JSON.parse(window.localStorage.getItem('usePushNotification')));
     @ViewChild('saveMessages', {read : MatSlideToggle, static : true}) public saveMessagesToggle : MatSlideToggle;
     
     constructor(
@@ -34,7 +35,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy{
 	    this.appContext.beforeInstallPromptEvent.prompt();
 	}
     }
-  
+    onChangeNotificationToggle($event){
+	window.localStorage.setItem('usePushNotification', $event.checked);
+    }
     onChangeMessageToggle($event){
         window.localStorage.setItem('saveMessages', $event.checked);
     }

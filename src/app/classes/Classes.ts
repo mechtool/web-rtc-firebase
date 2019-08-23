@@ -22,7 +22,7 @@ export class Contact {
 	this.email = user.email || '';
 	this.imgColor = user.imgColor || (this.photoURL == '/assets/app-shell/user.svg' ? Contact.getRandomColor() : 'transparent');
 	this.messToken = user.messToken || '';
-	this.statusColor = user.statusColor || '#cbcbcb' ;
+	this.statusColor = user.statusColor || '#959595' ;
 	this.checked = user.checked || false;
     }
     

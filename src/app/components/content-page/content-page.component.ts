@@ -65,8 +65,6 @@ export class ContentPageComponent implements OnInit, OnDestroy {
     ) {
         //передача контекста компонента
         this.appContext.contentComp = this;
-        //Установка настроек значений по умолчанию
-	window.localStorage.setItem('timeout', window.localStorage.getItem('timeout') ? window.localStorage.getItem('timeout') : '2');
 	//Подписка на события роутера начала и окончания маршрутизации
 	this.subscriptions.push(this.router.events.subscribe(event => {
 	    if (event instanceof NavigationStart || event instanceof NavigationEnd || event instanceof NavigationCancel) {

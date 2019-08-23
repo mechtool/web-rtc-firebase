@@ -88,6 +88,10 @@ export class AppComponent implements OnInit{
     
     ngOnInit(){
         let selector = window.localStorage.getItem('colorTheme');
+	window.localStorage.setItem('usePushNotification', window.localStorage.getItem('usePushNotification') || 'true');
+	window.localStorage.setItem('saveMessages', window.localStorage.getItem('saveMessages') || 'false');
+	//Установка настроек значений по умолчанию
+	window.localStorage.setItem('timeout', window.localStorage.getItem('timeout') || '30');
         if(!selector){
 	    window.localStorage.setItem('colorTheme', selector = 'second-theme');
 	}

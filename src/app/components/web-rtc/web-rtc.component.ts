@@ -1,10 +1,8 @@
 import {
     ChangeDetectorRef,
     Component,
-    ComponentRef,
     OnDestroy,
     OnInit,
-    Renderer2,
 } from '@angular/core';
 import {AppContextService} from "../../services/app-context.service";
 import {WebRtcService} from "../../services/web-rtc.service";

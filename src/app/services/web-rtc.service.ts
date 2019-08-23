@@ -362,12 +362,15 @@ export class WebRtcService {
 	    this.appContext.webRtcComponent.connecting = true;
 	    //Запуск счетчика времени ожидания вызова. Если ни один контакт не ответил,
 	    // тогда закрываем сообщение
-	    let t = window.localStorage.getItem('timeout'),
-		timeout = setTimeout(()=>{
+	    let timeout = setTimeout(()=>{
 	        //Если пиров нет, тогда все закрыть;
-	        if(!this.appContext.webRtcComponent.noPeers) this.closeAllMessages();
+	        if(this.appContext.webRtcComponent && !this.appContext.webRtcComponent.noPeers) {
+	            //Отобразить предупреждение пользователю
+	            this.showUserNotification({messageType : 1, sender : {message : 'Абоненты не ответили!', name : 'Application', photoURL : '/assets/app-shell/mess-00.png', imgColor : 'transparent', statusColor : this.statusColors.open}, messId : uuid()}).then(resp => {})  ;
+	            this.closeAllMessages();
+		}
 	        clearTimeout(timeout);
-	        }, +t * 60000 ) ;
+	        }, + window.localStorage.getItem('timeout') * 1000 ) ;
 	    //-----------------------------------------------------------------------------------
 	    
 	    contacts.forEach(cont => {
@@ -463,8 +466,8 @@ export class WebRtcService {
 	      pcItem.desc = new Offer({messId : uuid() , uid : this.appContext.appUser.uid, messageType : pcItem.messageType, contact : pcItem.contact,  receivers : getContactsObject(), status : 'active',  descType : this.collections[0], sender : this.appContext.appUser, desc: JSON.stringify(pcItem.pc.localDescription), candidates : []});
 	      //Отправка предложения сигнализации
 	      await this.database.sendDescriptor(pcItem.desc);
-	      //отправка Push-Notification получателю.
-	      await this.messaging.sendNotificationMessage(pcItem.desc);
+	      //отправка Push-Notification получателю, если настройка позволяет
+	      JSON.parse(window.localStorage.get('usePushNotification')) && await this.messaging.sendNotificationMessage(pcItem.desc);
 	      //Ссылка на функцию сигнализации для дальнейшего удаления ее вызова
 	      pcItem.onSignal =  this.onSignal.bind(this);
 	      //подписка на получение кандидатов ответов на отправленное предложение

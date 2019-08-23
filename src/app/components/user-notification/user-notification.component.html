@@ -1,13 +1,26 @@
-<div class="notification-container" >
-	<app-contact class="app-contact" [context]="context" [menuType]="0"></app-contact>
-	<span class="message-text">{{this.context.message || 'Новое сообщение'}}</span>
-	<span class="example-spacer"></span>
-	<div class="button-block">
-		<button mat-icon-button (click)="onReceive()">
-			<mat-icon style="color: darkgreen">check</mat-icon>
-		</button>
-		<button mat-icon-button (click)="onCancel()">
-			<mat-icon style="color: #b70000">close</mat-icon>
-		</button>
-	</div>
+<div class="notification-container" [ngSwitch]="messageType">
+	<ng-container *ngSwitchCase="0">
+		<app-contact class="app-contact" [context]="context" [menuType]="0"></app-contact>
+		<span class="message-text">{{this.context.message || 'Новое сообщение'}}</span>
+		<span class="example-spacer"></span>
+		<div class="button-block">
+			<button mat-icon-button (click)="onReceive()">
+				<mat-icon style="color: darkgreen">check</mat-icon>
+			</button>
+			<button mat-icon-button (click)="onCancel()">
+				<mat-icon style="color: #b70000">close</mat-icon>
+			</button>
+		</div>
+	</ng-container>
+	<ng-container *ngSwitchCase="1">
+		<app-contact class="app-contact" [context]="context" [menuType]="0"></app-contact>
+		<span class="message-text">{{this.context.message || 'Новое сообщение'}}</span>
+		<span class="example-spacer"></span>
+		<div class="button-block">
+			<button mat-icon-button (click)="onReceive()">
+				<mat-icon style="color: darkgreen">check</mat-icon>
+			</button>
+		</div>
+	</ng-container>
+
 </div>

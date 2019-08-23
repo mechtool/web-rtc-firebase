@@ -16,6 +16,7 @@ export class NotificationService {
     showUserNotification(payload) : ComponentRef<UserNotificationComponent>{
 	let item = {messId :  payload.messId, componentRef : this.appContext.notificationView.createComponent(this.appContext.contentResolver.resolveComponentFactory(UserNotificationComponent))};
 	let instance = item.componentRef.instance;
+	instance.messageType = payload.messageType || 0;
 	instance.context = payload.sender;
 	instance.messId = payload.messId;
 	this.userNoteSubscriptions.push(item);

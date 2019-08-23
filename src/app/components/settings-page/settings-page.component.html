@@ -43,7 +43,11 @@
 	</div>
 	<div class="settings-entry" (change)="onChangeMessageToggle($event)">
 		<div class="entry-header">Сохранять сообщения</div>
-		<mat-slide-toggle #saveMessages [disabled]="true"></mat-slide-toggle>
+		<mat-slide-toggle #saveMessages [disabled]="true" [formControl]="saveMessageControl"></mat-slide-toggle>
+	</div>
+	<div class="settings-entry" (change)="onChangeNotificationToggle($event)">
+		<div class="entry-header">Использовать Push Notification</div>
+		<mat-slide-toggle #useNotification   [formControl]="useNotificationControl"></mat-slide-toggle>
 	</div>
 	<div class="settings-entry"  (click)="onInstallScreen(addScreen)">
 		<div class="entry-header" >Установить приложение</div>
