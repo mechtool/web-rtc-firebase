@@ -1,5 +1,7 @@
 .settings-container{
     padding: 12px;
+    height: calc(100%);
+    overflow: auto;
 }
 .settings-entry{
     display: flex;

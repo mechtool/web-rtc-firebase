@@ -72,17 +72,20 @@ button.active{
 
 
 div.mat-drawer-inner-container::-webkit-scrollbar,
+div.settings-container::-webkit-scrollbar,
 div.mat-autocomplete-panel.mat-autocomplete-visible::-webkit-scrollbar,
 mat-card.contacts-card::-webkit-scrollbar{
     width: 6px;
 }
 div.mat-drawer-inner-container::-webkit-scrollbar-track,
+div.settings-container::-webkit-scrollbar-track,
 div.mat-autocomplete-panel.mat-autocomplete-visible::-webkit-scrollbar,
 mat-card.contacts-card::-webkit-scrollbar{
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
 }
 
 div.mat-drawer-inner-container::-webkit-scrollbar-thumb,
+div.settings-container::-webkit-scrollbar-thumb,
 div.mat-autocomplete-panel.mat-autocomplete-visible::-webkit-scrollbar,
 mat-card.contacts-card::-webkit-scrollbar{
     background-color: darkgrey;
