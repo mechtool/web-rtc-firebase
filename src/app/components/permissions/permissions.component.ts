@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component} from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {MessagingService} from "../../services/messaging.servece";
 import {AppContextService} from "../../services/app-context.service";
 declare let navigator;
@@ -7,7 +7,7 @@ declare let navigator;
   templateUrl: './permissions.component.html',
   styleUrls: ['./permissions.component.css']
 })
-export class PermissionsComponent  {
+export class PermissionsComponent {
 
     private _descriptorStates;
     public rtcVisible = false;
@@ -26,6 +26,8 @@ export class PermissionsComponent  {
     public notificationNote = 'prompt' ;
     public rtcNote = 'prompt';
     public descriptors = ['camera', 'microphone', 'notifications'];
+    @ViewChildren('rtcButton, notificationButton', {read: ElementRef}) public buttonList : QueryList<ElementRef>;
+    
     constructor(
         private messagingService : MessagingService,
 	public changeRef : ChangeDetectorRef,
@@ -40,7 +42,8 @@ export class PermissionsComponent  {
     }
     
     onNotification(){
-        this.messagingService.getPermission().then(permission  => {
+	this.buttonList.first.nativeElement.disabled || (this.buttonList.first.nativeElement.disabled = true);
+	this.messagingService.getPermission().then(permission  => {
 	    if (permission === 'denied') {
 		this.notificationNote = permission;
 		console.log('[Notifications] Разрешение пользователя не получено.');
@@ -52,11 +55,13 @@ export class PermissionsComponent  {
 	        console.log('[Notifications] Пользователь выдал разрешение');
 	        this.noteVisible = false;
 	    }
+	    this.buttonList.first.nativeElement.disabled = false;
 	    this.checkComponentVisible();
 	})
     }
     
     async onWebRtc(){
+	this.buttonList.last.nativeElement.disabled || (this.buttonList.last.nativeElement.disabled = true);
 	await navigator.mediaDevices.getUserMedia({
 	    audio: true,
 	    video: true,
@@ -67,6 +72,7 @@ export class PermissionsComponent  {
 	    this.rtcNote = 'denied';
 	    this.rtcVisible = true;
 	});
+	this.buttonList.last.nativeElement.disabled = false;
 	this.checkComponentVisible();
     }
     

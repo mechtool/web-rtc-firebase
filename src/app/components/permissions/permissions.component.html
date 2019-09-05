@@ -6,14 +6,14 @@
 				<p *ngSwitchCase="'prompt'" >Запросить доступ к камере и микрофону.</p>
 				<mat-error *ngSwitchCase="'denied'" ><p>Пользователь не дал разрешение на доступа к камере и микрофону. Снимите запрет и повторите попытку.</p></mat-error>
 			</ng-container>
-			<button mat-raised-button [color]="'primary'" [disabled]="rtcNote === 'denied'" (click)="onWebRtc()">Запросить</button>
+			<button #rtcButton mat-raised-button [color]="'primary'" [disabled]="rtcNote === 'denied'" (click)="onWebRtc()">Запросить</button>
 		</div>
 		<div class="notification-permission" *ngIf="noteVisible">
 			<ng-container [ngSwitch]="notificationNote">
 				<p  *ngSwitchCase="'prompt'">Запросить разрешение на получение уведомлений.</p>
 				<mat-error *ngSwitchCase="'denied'" ><p>Пользователь не дал разрешение на получение уведомлений. Снимите запрет и повторите попытку.</p></mat-error>
 			</ng-container>
-			<button mat-raised-button [color]="'primary'" [disabled]="notificationNote === 'denied'" (click)="onNotification()">Запросить</button>
+			<button #notificationButton mat-raised-button [color]="'primary'" [disabled]="notificationNote === 'denied'" (click)="onNotification()">Запросить</button>
 		</div>
 	</div>
 </div>

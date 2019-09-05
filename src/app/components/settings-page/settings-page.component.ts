@@ -10,10 +10,12 @@ import {FormControl} from "@angular/forms";
 })
 export class SettingsPageComponent implements OnInit, OnDestroy{
     public hardware = this.appContext.contentComp.hardware;
-    public timeout = ['30', '60', '90', '120', '180', '210'];
+    public timeout = ['30 секунд', '60 секунд', '90 секунд', '120 секунд', '180 секунд', '210 секунд'];
+    public contactSign = ['5 символов', '10 символов', '12 символов', '15 символов', '20 символов', 'не сокращать'];
     public timeoutControl = new FormControl(window.localStorage.getItem('timeout'));
-    public saveMessageControl = new FormControl(JSON.parse(window.localStorage.getItem('saveMessages')));
+    public saveMessageControl = new FormControl({value : JSON.parse(window.localStorage.getItem('saveMessages')),  disabled : true});
     public useNotificationControl = new FormControl(JSON.parse(window.localStorage.getItem('usePushNotification')));
+    public contactSignControl = new FormControl(window.localStorage.getItem('contactSign'));
     @ViewChild('saveMessages', {read : MatSlideToggle, static : true}) public saveMessagesToggle : MatSlideToggle;
     
     constructor(
@@ -30,6 +32,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy{
   ngOnInit() {
         this.saveMessagesToggle.checked = window.localStorage.getItem('saveMessages') === 'true';
     }
+    
     onInstallScreen(addScreen){//активация кнопки установки приложение на экран устройства
 	if(addScreen.disable || this.appContext.beforeInstallPromptEvent){
 	    this.appContext.beforeInstallPromptEvent.prompt();
@@ -42,14 +45,18 @@ export class SettingsPageComponent implements OnInit, OnDestroy{
         window.localStorage.setItem('saveMessages', $event.checked);
     }
   
-    onChangeSelect(event){
+    onChangeTimeoutSelect(event){
      window.localStorage.setItem('timeout', event.value);
 }
+    
+    onChangeContactSignSelect(event){
+	window.localStorage.setItem('contactSign', event.value);
+    }
     onSingOut(){
-/*	this.appContext.auth.signOut().then(() => {
+	this.appContext.auth.signOut().then(() => {
 	    window.location.reload()
 	}).catch(function(error) {
 	    // An error happened.
-	});*/
+	});
     }
 }

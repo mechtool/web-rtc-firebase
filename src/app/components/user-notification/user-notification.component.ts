@@ -11,6 +11,7 @@ export class UserNotificationComponent implements  OnDestroy {
     public context ;
     public messId;
     public messageType = 0;
+    public hasCancel = true;
     public subscriptions = [];
     @Output() public receive : EventEmitter<any> = new EventEmitter();
     @Output() public cancel : EventEmitter<any> = new EventEmitter() ;

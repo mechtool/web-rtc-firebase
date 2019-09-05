@@ -16,17 +16,20 @@ export class NotificationService {
     showUserNotification(payload) : ComponentRef<UserNotificationComponent>{
 	let item = {messId :  payload.messId, componentRef : this.appContext.notificationView.createComponent(this.appContext.contentResolver.resolveComponentFactory(UserNotificationComponent))};
 	let instance = item.componentRef.instance;
-	instance.messageType = payload.messageType || 0;
+	instance.messageType = typeof payload.messageType == 'number' ?  payload.messageType : 0;
 	instance.context = payload.sender;
+	instance.hasCancel = payload.hasCancel instanceof Boolean ? payload.hasCancel : true;
 	instance.messId = payload.messId;
 	this.userNoteSubscriptions.push(item);
 	this.appContext.contentComp.changeRef.detectChanges();
 	return item.componentRef;
-	
     }
     deleteNotification(messId){
 	let res = this.userNoteSubscriptions.find(sn => sn.messId === messId);
-	res && res.componentRef.destroy();
+	if(res){
+	    res.componentRef.destroy();
+	    this.userNoteSubscriptions.splice(this.userNoteSubscriptions.indexOf(res), 1);
+	}
 	this.appContext.contentComp.changeRef.detectChanges();
     }
 }

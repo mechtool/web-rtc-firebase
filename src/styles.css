@@ -70,25 +70,28 @@ button.active{
     background: rgba(255, 255, 255, 0.24) !important;
 }
 
-
+div.contact-card-container::-webkit-scrollbar,
 div.mat-drawer-inner-container::-webkit-scrollbar,
 div.settings-container::-webkit-scrollbar,
 div.mat-autocomplete-panel.mat-autocomplete-visible::-webkit-scrollbar,
 mat-card.contacts-card::-webkit-scrollbar{
-    width: 6px;
+    width: 8px;
+
 }
+div.contact-card-container::-webkit-scrollbar-track,
 div.mat-drawer-inner-container::-webkit-scrollbar-track,
 div.settings-container::-webkit-scrollbar-track,
 div.mat-autocomplete-panel.mat-autocomplete-visible::-webkit-scrollbar,
 mat-card.contacts-card::-webkit-scrollbar{
      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
 }
-
+div.contact-card-container::-webkit-scrollbar-thumb,
 div.mat-drawer-inner-container::-webkit-scrollbar-thumb,
 div.settings-container::-webkit-scrollbar-thumb,
 div.mat-autocomplete-panel.mat-autocomplete-visible::-webkit-scrollbar,
 mat-card.contacts-card::-webkit-scrollbar{
     background-color: darkgrey;
     outline: 1px solid slategrey;
+    border-radius: 4px;
 }
 

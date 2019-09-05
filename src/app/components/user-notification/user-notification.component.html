@@ -7,7 +7,7 @@
 			<button mat-icon-button (click)="onReceive()">
 				<mat-icon style="color: darkgreen">check</mat-icon>
 			</button>
-			<button mat-icon-button (click)="onCancel()">
+			<button mat-icon-button (click)="onCancel()" *ngIf="hasCancel">
 				<mat-icon style="color: #b70000">close</mat-icon>
 			</button>
 		</div>

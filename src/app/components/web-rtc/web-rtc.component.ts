@@ -20,6 +20,7 @@ import {Router} from "@angular/router";
 export class WebRtcComponent implements OnInit, OnDestroy {
     
     
+    public firstMessageText;
     private _messageType = 0;
     public pcMessage : PcMessage ;
     public selfSrcObject;
@@ -71,10 +72,11 @@ export class WebRtcComponent implements OnInit, OnDestroy {
 	      (message.contacts as Array<any>).forEach(con => {
 		  if(!v.some(c => c.uid === con.uid) || !v.length){
 		      v.push(this.appContext.contentComp._contacts.find(cont => cont.uid == con.uid) || con) ;
-		      this.messageContacts.next(v);
+		      //*
 		      this.noPeers = true;
 		  }
 	      }) ;
+	      this.messageContacts.next(v); //*
 	      message.complete && message.complete();
 	  }
 	  this.contentComp.changeRef.detectChanges();
@@ -104,15 +106,18 @@ export class WebRtcComponent implements OnInit, OnDestroy {
 	}
 	this.messageType = inx;
 	this.router.navigateByUrl(this.typeIcons[inx].src,{ skipLocationChange: true });
-    
     }
     
     onSubmit(event){
         event.type === 'keydown' && event.preventDefault();
-        this.webRtcService.startConnection({initializer : true, messageType : this.messageType === 0 ? 'text' : this.messageType === 1 ? 'audio' : 'video' });
+        if(this.messageType === 0){
+            this.webRtcService.textMessage({initializer : true, desc : {messageType : 'text', status : 'active'}, contacts : this.appContext.webRtcComponent.messageContacts.value});
+        }else{
+	    this.webRtcService.startConnection({initializer : true,  desc : {messageType :  this.messageType === 1 ? 'audio' : 'video', status  : 'active' },  contacts : this.appContext.webRtcComponent.messageContacts.value});
+	}
   }
     
-    deleteContact(uidArr :Array<string>){
+    deleteContact(uidArr : string[]){
 	let arr = this.messageContacts.value;
 	uidArr.forEach(uid =>{
 	    let inx = arr.findIndex(cont => cont.uid === uid);
@@ -130,7 +135,7 @@ export class WebRtcComponent implements OnInit, OnDestroy {
 	this.contentComp.onClickMenu();
     }
    async onCloseConnection(){
-        let result = await this.webRtcService.checkComponentCollection('Закрыть текущее сообщение?');
+        let result = await this.webRtcService.checkComponentCollection({mid : '123456', message : 'Закрыть текущее сообщение?'});
 	if(result.received) this.webRtcService.closeAllMessages();
     }
 }

@@ -1,6 +1,6 @@
 <div class="grid-container">
 	<div class="main-video-container" >
-		<button class="start-coll-button" mat-fab  (click)="onClickMenuButton()">
+		<button class="start-call-button" mat-fab  (click)="onClickCallButton()" [ngStyle]="{'background-color': disabledColor}" [disabled]="disabledCall">
 			<mat-icon class="icon-button-toolbar">call</mat-icon>
 		</button>
 		<mat-toolbar class="video-message-toolbar">

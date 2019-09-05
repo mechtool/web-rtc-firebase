@@ -44,7 +44,7 @@ export class DatabaseService {
 	Object.keys(update).forEach(key => {
 	    this.getDatabaseRef(key).once('value').then((snap)=> {
 	        let value = snap.val();
-		if(value && value.status === 'active') {
+		if(value && /active|implicit/.test(value.status)) {
 		    snap.ref.update(update[key]);
 		}
 	    })

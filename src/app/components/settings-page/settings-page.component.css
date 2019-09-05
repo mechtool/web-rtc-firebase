@@ -17,6 +17,9 @@
 .settings-entry:hover{
     background-color: #e3e3e3;
 }
-.timeout-field{
-    width: 100px;
+/*-------------------------max-width 400px------------------------------*/
+@media all and (max-width: 400px) {
+    mat-form-field.timeout-field, mat-form-field.contact-sign-field{
+        width: 100px;
+    }
 }

@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {ContentPageComponent} from "../content-page/content-page.component";
 import {Contact} from "../../classes/Classes";
 import {BehaviorSubject} from "rxjs";
@@ -8,17 +8,12 @@ import {BehaviorSubject} from "rxjs";
   templateUrl: './contacts-page.component.html',
   styleUrls: ['./contacts-page.component.css']
 })
-export class ContactsPageComponent implements OnInit {
+export class ContactsPageComponent {
 
     public contacts : BehaviorSubject<Contact[]> ;
-
     constructor(
         public contentComp : ContentPageComponent
 		) {
         this.contacts = this.contentComp.contacts;
-    }
-  
-    ngOnInit() {
-
     }
 }

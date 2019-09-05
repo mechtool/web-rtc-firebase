@@ -99,8 +99,7 @@ export class ContentPageComponent implements OnInit, OnDestroy {
 	       cont.checked = false;
 	   }
 	});
-
-	 this.changeRef.detectChanges();
+	this.changeRef.detectChanges();
     }
     
     gotDevices(deviceInfos) {

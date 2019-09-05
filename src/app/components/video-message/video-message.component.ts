@@ -14,6 +14,8 @@ import {Location} from "@angular/common";
 export class VideoMessageComponent implements OnInit, AfterViewInit, OnDestroy {
     
     public pcMessage ;
+    public disabledCall = true;
+    public disabledColor = 'initial';
     public messageContacts : BehaviorSubject<any>;
     public toolbarButtons =[
 	{className : 'menu-button', text : 'menu' , listener : this.onMenuClick.bind(this)},
@@ -38,6 +40,10 @@ export class VideoMessageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     
   ngOnInit() {
+        this.messageContacts.subscribe(resp => {
+            this.disabledCall = !resp.length;
+            this.disabledColor = resp.length ? '' : '#d0d0d047';
+	});
   }
     
     onCloseMessage(){
@@ -63,7 +69,8 @@ export class VideoMessageComponent implements OnInit, AfterViewInit, OnDestroy {
       })
   }
   
-    onClickMenuButton(){
+    onClickCallButton(){
+	this.webRtcService.startConnection({initializer : true,  desc : {messageType : 'video', status  : 'active' }, contacts : this.webRtcComp.messageContacts.value});
     }
 
     ngOnDestroy(){

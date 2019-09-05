@@ -23,3 +23,6 @@ button{
 .app-contact{
     margin: 0 5px 0 5px;
 }
+div.button-block{
+    display: inline;
+}

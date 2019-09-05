@@ -4,10 +4,18 @@
 		<app-color-theme></app-color-theme>
 	</div>
 	<div class="settings-entry">
-		<div class="entry-header">Время ожидания ответа. Сек.</div>
+		<div class="entry-header">Время ожидания ответа</div>
 		<mat-form-field class="timeout-field">
-			<mat-select [formControl]="timeoutControl" (selectionChange)="onChangeSelect($event)">
+			<mat-select [formControl]="timeoutControl" (selectionChange)="onChangeTimeoutSelect($event)">
 				<mat-option *ngFor="let time of timeout" [value]="time">{{time}}</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+	<div class="settings-entry">
+		<div class="entry-header">Сокращать имена контактов до.</div>
+		<mat-form-field class="contact-sign-field">
+			<mat-select [formControl]="contactSignControl" (selectionChange)="onChangeContactSignSelect($event)">
+				<mat-option *ngFor="let sign of contactSign" [value]="sign">{{sign}}</mat-option>
 			</mat-select>
 		</mat-form-field>
 	</div>
@@ -43,11 +51,11 @@
 	</div>
 	<div class="settings-entry" (change)="onChangeMessageToggle($event)">
 		<div class="entry-header">Сохранять сообщения</div>
-		<mat-slide-toggle #saveMessages [disabled]="true" [formControl]="saveMessageControl"></mat-slide-toggle>
+		<mat-slide-toggle #saveMessages  [formControl]="saveMessageControl"></mat-slide-toggle>
 	</div>
 	<div class="settings-entry" (change)="onChangeNotificationToggle($event)">
 		<div class="entry-header">Использовать Push Notification</div>
-		<mat-slide-toggle #useNotification   [formControl]="useNotificationControl"></mat-slide-toggle>
+		<mat-slide-toggle [formControl]="useNotificationControl"></mat-slide-toggle>
 	</div>
 	<div class="settings-entry"  (click)="onInstallScreen(addScreen)">
 		<div class="entry-header" >Установить приложение</div>

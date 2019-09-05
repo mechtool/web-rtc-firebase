@@ -1,4 +1,3 @@
-const uuid = require('uuid/v1');
 export class Contact {
     
     public name: string;
@@ -43,6 +42,8 @@ export class Descriptor {
     messageType : string;
     status : string;
     contact : Contact;
+    explicit : boolean;
+    
     
     constructor(desc){
 	this.uid = desc.uid; //Идентификатор пользователя
@@ -55,6 +56,7 @@ export class Descriptor {
 	this.messageType = desc.messageType || '';
 	this.status = desc.status || '' ;
 	this.contact = desc.contact || undefined;
+	this.explicit = desc.explicit || true;
     }
 }
 
@@ -67,17 +69,15 @@ export class Candidate extends Descriptor{
 }
 
 export class Offer extends Descriptor{
-    public candidates  = []
 }
 
 export class Answer extends Descriptor{
-    public candidates  = []
-    
+
 }
 
 export class Message  {
     
-    date : number = Date.now();
+    date : number;
     messageType  : string  = '';// video/ text/ audio
     ext : string = ''; //расширение файла сообщения
     sourceUrl : string = '';//адрес ресурса если он кудато записан
@@ -88,7 +88,7 @@ export class Message  {
     candidates? : Array<any>;
     
     constructor(message){
-	this.date = message.date;
+	this.date = Date.now();
 	this.messageType = message.messageType;
 	this.ext = message.ext;
 	this.sourceUrl = message.sourceUrl;
@@ -100,7 +100,6 @@ export class Message  {
     }
 }
 export class PcMessage{
-    
     public pcCollection = {};
-    constructor(public mid : string = uuid()){}
+    constructor(){}
 }

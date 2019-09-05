@@ -11,6 +11,9 @@
       },
       "candidates" : {
         ".indexOn": ["descId"]
+      },
+      "implicit-candidates" : {
+        ".indexOn": ["descId"]
       }
     }
   }
