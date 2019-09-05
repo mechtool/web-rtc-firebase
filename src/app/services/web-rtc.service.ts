@@ -65,8 +65,6 @@ export class WebRtcService {
 	 this.collections.forEach(coll => {
 	     //подписка на активные предложения и ответы
 	     this.database.getDatabaseRef(coll + this.appContext.appUser.uid).orderByChild('status').equalTo("active").on('value', this.wrapOnSignal);
-	     //подписка на теневые предложения и теневые ответы
-	     this.database.getDatabaseRef(coll + this.appContext.appUser.uid).orderByChild('status').equalTo("implicit").on('value', this.wrapOnSignal)
 	 })
       }catch (e) {console.log(e)}
     }
@@ -146,60 +144,48 @@ export class WebRtcService {
 				active = active ||  key == this.appContext.appUser.uid;
 				if(key == this.appContext.appUser.uid) continue;
 				if(active){
-				    //Сформировать теневое предложение
+				    //Сформировать теневое предложение и сформировать подписку на теневые ответы
 				    that.startConnection({initializer : true,  desc: {messageType : descriptor.messageType , status  : 'implicit' }, contacts : [descriptor.receivers[key]]});
 				}
 			    }
+			//Запуск подписки на теневые предложения и ответы
+			this.collections.forEach(coll => {
+			    //подписка на теневые предложения и теневые ответы
+			    this.database.getDatabaseRef(coll + this.appContext.appUser.uid).orderByChild('status').equalTo("implicit").on('value', this.wrapOnSignal) ;
+			});
+			
 			}
-			    
-			}else{
-			    this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'rejected'}});
+		}else{
+		    this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'rejected'}});
 			}
-		    
-		    } else if(descriptor.status === 'implicit'){//здесь получили неявное предложение, создаем соединение
+	    } else if(descriptor.status === 'implicit'){//здесь получили неявное предложение, создаем соединение
 		        //только для отправителя
 		    await this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'received'}});
 		    that.startConnection({initializer : false,  desc: descriptor, contacts : [descriptor.sender]});
-		    
-		    }
-		    //объект соединения готов
-		    let pcItem = that.getPcItem(descriptor.uid),
-			pc = pcItem.pc ;
-		    if(pc){
-			// установили удаленный offer как удаленный дескриптор
-			await pc.setRemoteDescription(descriptor.desc);
-			//установили локальный дескриптор и создали свой ответ (answer)
-			await pc.setLocalDescription(await pc.createAnswer());
-			//формирование ответа на приглашение, после которого вызывается меод формирования кандидатов
-			//в котором и происходит отправка дескриптора на сервер
-			pcItem.desc = new Answer({messId : descriptor.messId , status :  pcItem.explicit ? 'active' : 'implicit',   uid : this.appContext.appUser.uid, messageType : descriptor.messageType,  descType : this.collections[1], contact : pcItem.contact, receivers : {[descriptor.sender.uid] : descriptor.sender}, sender : this.appContext.appUser, desc: JSON.stringify(pc.localDescription), candidates : []});
-			//Отправка дескриптора на сервер
-			await this.database.sendDescriptor(pcItem.desc);
-			//Ссылка на функцию сигнализации для дальнейшего ее удаления
-			pcItem.onSignal = this.wrapOnSignal;//this.onSignal.bind(this);
-			//Подписка на получение удаленных кандидатов
-			//подписка на получение кандидатов ответов на отправленное предложение
-			this.database.getDatabaseRef((pcItem.explicit ? 'rtc/candidates/' : 'rtc/implicit-candidates/') + this.appContext.appUser.uid ).orderByChild('descId')
-			    .equalTo(pcItem.desc.messId).on('value', pcItem.onSignal);
-			//-----------------------переход на теневой функционал-----------------------------------------------------------
-			//Подписка на теневые предложения и ответы  со статусом 'implicit', при условии,
-			//что в принятом предложении есть контакты, которые будут соединяться с текущим (определяем
-			// следующим образом: согласно схеме - контакты имеющие меньший индекс, относительно текущего, будут инициаторами тененвых предложений, и устанавливают подписчики на принятия теневых ответов , контакты, имеющие больший индекс относительно текущего,
-			// только устанавливают подписчики на прием тененвых предложений). Пример:
-			// [1, 2, 3, 4, 5, 6], если текущий контакт обнаружил себя по своему индексу в списке контактов, полученных от инициатора явного предложения с индексои 3, то он формирует теневые предложения для контактов [4, 5, 6], и ставит обработчики на получения теневых предложения от контактов [1, 2], и обработчики на принятие теневых ответов от контактов [4,5,6], и если
-			//предложение является явным
-			
-			pcItem.explicit && (this.collections.forEach(coll => {
-				//todo идет подписка на скрытые предложения и ответы.Эти подписки нужно удалять при удалении всей коллекции соединений pcCollection
-				//подписка на активные предложения ответы и кандидаты, если настрока оптимизации включена
-				this.database.getDatabaseRef(coll + this.appContext.appUser.uid).orderByChild('status').equalTo("implicit").on('value', this.wrapOnSignal /*this.onSignal.bind(this)*/)
-			    })
-			)
-			//---------------------завершение области перехода на формирования теневого функционала------------------------------
-		    }
-		}catch (e) { //Выход по ошибке
-		    //todo Отказ от принятия предложения - отправляем изменение статуса сообщения на сервер  status = rejected
-		    await this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'rejected'}});
+	    }
+	    //объект соединения готов
+	    let pcItem = that.getPcItem(descriptor.uid),
+		pc = pcItem.pc ;
+	    if(pc){
+		// установили удаленный offer как удаленный дескриптор
+		await pc.setRemoteDescription(descriptor.desc);
+		//установили локальный дескриптор и создали свой ответ (answer)
+		await pc.setLocalDescription(await pc.createAnswer());
+		//формирование ответа на приглашение, после которого вызывается меод формирования кандидатов
+		//в котором и происходит отправка дескриптора на сервер
+		pcItem.desc = new Answer({messId : descriptor.messId , status :  pcItem.explicit ? 'active' : 'implicit',   uid : this.appContext.appUser.uid, messageType : descriptor.messageType,  descType : this.collections[1], contact : pcItem.contact, receivers : {[descriptor.sender.uid] : descriptor.sender}, sender : this.appContext.appUser, desc: JSON.stringify(pc.localDescription), explicit :  pcItem.explicit });
+		//Отправка дескриптора на сервер
+		await this.database.sendDescriptor(pcItem.desc);
+		//Ссылка на функцию сигнализации для дальнейшего ее удаления
+		pcItem.onSignal = this.wrapOnSignal;
+		//Подписка на получение удаленных кандидатов
+		//подписка на получение кандидатов ответов на отправленное предложение
+		this.database.getDatabaseRef((pcItem.explicit ? 'rtc/candidates/' : 'rtc/implicit-candidates/') + this.appContext.appUser.uid ).orderByChild('descId')
+		    .equalTo(pcItem.desc.messId).on('value', pcItem.onSignal);
+	    }
+	    }catch (e) { //Выход по ошибке
+		//todo Отказ от принятия предложения - отправляем изменение статуса сообщения на сервер  status = rejected
+		await this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'rejected'}});
 		}
 	    })();
 	}else if(descriptor.descType.indexOf('answers') >= 0 && descriptor.desc){
@@ -456,7 +442,7 @@ export class WebRtcService {
 	}
 	//Только новое сообщение с не пустым списком получателей
 	if(opts.contacts.length){
-	     if(opts.messageType != 'video'){ //только если, тип сообщения не является видеосообщением
+	     if(opts.desc.messageType != 'video'){ //только если, тип сообщения не является видеосообщением
 		 //Отключаем кнопку отправки сообщения
 		 this.appContext.webRtcComponent.noPeers = false;
 		 //Отключения кнопок интерфейса для предотвращения перехода на другие страницы до окончания сообщения
@@ -538,7 +524,7 @@ export class WebRtcService {
 				    } catch (err) {
 					console.error(err);
 				    }
-				})() ;
+			    })() ;
 	      		}
 	    }
 	}
@@ -617,6 +603,7 @@ export class WebRtcService {
 		  descId : target.messId,
 		  messageType: 'candidate',
 		  uid: this.appContext.appUser.uid,
+		  explicit : pcItem.explicit,
 		  descType: pcItem.explicit ? 'rtc/candidates/' : 'rtc/implicit-candidates/',
 		  contact : pcItem.contact,
 		  receivers: {[ pcItem.contact.uid]:  pcItem.contact},
