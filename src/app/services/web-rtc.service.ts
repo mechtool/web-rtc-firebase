@@ -14,27 +14,28 @@ const uuid = require('uuid/v1');
 
 export class WebRtcService {
     
-    public timeouts : any ={};
+    public timeouts : any = {};
     public notifications = {};
     public pcMessage = new PcMessage();
     public collections = ['rtc/offers/',  'rtc/answers/'];  /// 'rtc/candidates'
     public statusColors = {new : '#58ad4e', open : '#3f8e54', connecting : '#4351d9', connected : '#0e0ca5', message : '#00afb6',
 	disconnected : '#959595', closing : '#dd4c48', closed : '#d10900', failed : '#959595', close : '#959595', error : '#c70900'};
     public configuration = {
-        iceServers: [{
-	    urls: [ "stun:eu-turn3.xirsys.com" ]
-	}, {
-	    username: "bg1V1XOWQtvhObCaa4IYix91GcJa4oUeD5u5cqwStfY_trcca8J332_MyWF2qsQHAAAAAFzfvPpzaXdh",
-	    credential: "d0d52690-7943-11e9-ba1e-72c9c257b255",
-	    urls: [
-		"turn:eu-turn3.xirsys.com:80?transport=udp",
-		"turn:eu-turn3.xirsys.com:3478?transport=udp",
-		"turn:eu-turn3.xirsys.com:80?transport=tcp",
-		"turn:eu-turn3.xirsys.com:3478?transport=tcp",
-		"turns:eu-turn3.xirsys.com:443?transport=tcp",
-		"turns:eu-turn3.xirsys.com:5349?transport=tcp"
-	    ]
-	}]} ;
+	iceServers: [
+	    {
+	        urls: [ "stun:eu-turn2.xirsys.com" ]
+	    },
+	    {
+	        username: "_QBDjekzkmjznc7qiVmf8EMX5_O89xSjPiIJcO9ERG9hKuRfOSlANrSRz4ldS1AxAAAAAF1yQnxzaXdh",  
+		credential: "39cc9e42-d099-11e9-8a44-4a049da423ff",  
+		urls: [
+		    "turn:eu-turn2.xirsys.com:80?transport=udp",      
+		    "turn:eu-turn2.xirsys.com:3478?transport=udp",      
+		    "turn:eu-turn2.xirsys.com:80?transport=tcp",      
+		    "turn:eu-turn2.xirsys.com:3478?transport=tcp",      
+		    "turns:eu-turn2.xirsys.com:443?transport=tcp",      
+		    "turns:eu-turn2.xirsys.com:5349?transport=tcp"  
+		]}]} ;
     //Функция обезтка над функцией получение сигнала для передачи this
     public wrapOnSignal = this.onSignal.bind(this);
     
@@ -92,7 +93,6 @@ export class WebRtcService {
     onSignal(snap){//получено предложение type=offer/answer/candidates
     
 	if(!snap.val()) return ;
-	
 	let ntResult,
 	    that = this,
 	    val = Object.values(snap.val()) as any[],
@@ -439,7 +439,7 @@ export class WebRtcService {
     }
     
     startConnection(opts){
-	let timeout;
+
 	if(!this.configuration){
 	    console.log('Невозможно создать соединение по причине отсутствующей STUN/TURN конфигурации!');
 	    return false;
@@ -456,16 +456,17 @@ export class WebRtcService {
 	     }
 	    //Запуск счетчика времени ожидания вызовов, если пользователь, является инициатором сообщения. Если ни один контакт не ответил,
 	    // тогда закрываем сообщение
-/*	    if(opts.initializer && opts.desc.status === 'active') (timeout = setTimeout(()=>{
+	    if(opts.initializer && opts.desc.status === 'active') (this.timeouts[opts.desc.uid] = setTimeout(()=>{
 	        //Если пиров нет, тогда все закрыть;
 	        if(this.appContext.webRtcComponent && !this.appContext.webRtcComponent.noPeers) {
 	            //Отобразить предупреждение пользователю
 	            this.showUserNotification({messageType : 1, sender : {message : 'Абоненты не ответили!', name : 'Application', photoURL : '/assets/app-shell/mess-00.png', imgColor : 'transparent', statusColor : this.statusColors.open}, messId : uuid()}).then(resp => {})  ;
 	            this.closeAllMessages();
 		}
-	        clearTimeout(timeout);
-	        timeout = undefined;
-	        }, parseInt(window.localStorage.getItem('timeout')) * 1500 )) ;*/
+	        clearTimeout(this.timeouts[opts.desc.uid]);
+	        delete this.timeouts[opts.desc.uid];
+	       
+	        }, parseInt(window.localStorage.getItem('timeout')) * 1500 )) ;
 	    //-----------------------------------------------------------------------------------
 	    //Если предложение принято нужно сформировать предложения для контактов, находящихся в
 	    // списке получателей desc.receivers + отправитель явного предложения по схеме:
@@ -475,7 +476,8 @@ export class WebRtcService {
 	    //4. Диапазон ожидания ответов от пиров устанавливается на соединения, для которых текущий пользователь является инициатором
 	    for(let i = 0; i < opts.contacts.length; i++){
 	        let cont = opts.contacts[i];
-	        cont = this.appContext.webRtcComponent.messageContacts.value.find(con => con.uid === cont.uid) || cont;
+	        cont = this.appContext.contentComp.contacts.value.find(con => con.uid === cont.uid) || cont;
+	        cont.checked = true;
 	        let pcItem = {uid : cont.uid,  contact : cont, pc : new RTCPeerConnection(this.configuration), initializer : opts.initializer, messageType : opts.desc.messageType, channel : undefined, stream : undefined , srcObject : undefined, desc : undefined ,  explicit : opts.desc.status === 'active' };
 		this.pcMessage.pcCollection[cont.uid]  =  pcItem;
 	  //Изменение статуса контакта при изменении статуса соединения

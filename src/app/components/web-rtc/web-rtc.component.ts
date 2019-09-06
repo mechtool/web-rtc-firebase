@@ -112,7 +112,7 @@ export class WebRtcComponent implements OnInit, OnDestroy {
         if(this.messageType === 0){
             this.webRtcService.textMessage({initializer : true, desc : {messageType : 'text', status : 'active'}, contacts : this.appContext.webRtcComponent.messageContacts.value});
         }else{
-	    this.webRtcService.startConnection({initializer : true,  desc : {messageType :  this.messageType === 1 ? 'audio' : 'video', status  : 'active' },  contacts : this.appContext.webRtcComponent.messageContacts.value});
+	    this.webRtcService.startConnection({initializer : true,  desc : {uid : this.appContext.appUser.uid, messageType :  this.messageType === 1 ? 'audio' : 'video', status  : 'active' },  contacts : this.appContext.webRtcComponent.messageContacts.value});
 	}
   }
     

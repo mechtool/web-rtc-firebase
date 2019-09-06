@@ -20,7 +20,7 @@
 	</div>
 	<mat-sidenav-container class="sidenav-container">
 		<mat-sidenav [mode]="sideNavMode" [(opened)]="opened">
-			<app-contact *ngFor="let item of contacts | async" [context]="item" [menuType]="-1"></app-contact>
+			<app-contact *ngFor="let contact of contacts | async" [context]="contact" [menuType]="-1"></app-contact>
 		</mat-sidenav>
 		<mat-sidenav-content class="sideNavContent" [@routerTransition]="getState(content)">
 			<router-outlet #content="outlet" ></router-outlet>
