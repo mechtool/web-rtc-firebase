@@ -159,9 +159,15 @@ export class WebRtcService {
 		    this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'rejected'}});
 			}
 	    } else if(descriptor.status === 'implicit'){//здесь получили неявное предложение, создаем соединение
-		        //только для отправителя
-		    await this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'received'}});
-		    that.startConnection({initializer : false,  desc: descriptor, contacts : [descriptor.sender]});
+		    //Нужно его проверить : существует ли контакт с совпадающим идентификатором в списке контактов,
+			//и если существует, то создать соединение
+		    if(this.appContext.webRtcComponent.messageContacts.value.some((cont)=> {
+			 return cont.uid === descriptor.uid;
+		    })){
+			//только для отправителя
+			await this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'received'}});
+			that.startConnection({initializer : false,  desc: descriptor, contacts : [descriptor.sender]});
+		    }
 	    }
 	    //объект соединения готов
 	    let pcItem = that.getPcItem(descriptor.uid),
@@ -194,9 +200,10 @@ export class WebRtcService {
 		//Установка удаленного дескриптора из ответа и установка удпленных кандидатов
 		let pcItem = that.getPcItem(descriptor.uid);
 		if(pcItem && pcItem.pc) (async () => {
-		    await pcItem.pc.setRemoteDescription(JSON.parse(descriptor.desc)).then(()=>{
+		    let desc = JSON.parse(descriptor.desc);
+		    pcItem.pc.setRemoteDescription(desc).then(()=>{
 		    //Изменение статуса дескриптора - принят
-		    	this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'received'}}) });
+		    	this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'received'}}) }).catch((err) => console.error(err));
 		    
 		    //Установка удаленных кандидатов, если
 		   // this.setCandidates(pcItem.pc, d.candidates);
@@ -235,6 +242,7 @@ export class WebRtcService {
 	    this.appContext.webRtcComponent.connecting = false;
 	    //принудительно устанавливаем отсутствие пиров
 	    this.appContext.webRtcComponent.noPeers = true;
+	    this.appContext.webRtcComponent.firstMessageText = undefined;
 	}
 
 	if(this.appContext.textMessageComponent){
@@ -263,12 +271,8 @@ export class WebRtcService {
 	    // его объект соединения должен быть удален по истечении периода времени ожидания ответа, настраиваемом на странице настроук.)
 	    if(desc){
 		//Снятие ранее установленных обработчиков на получения кандидатов
-		 if(pcItem.explicit) {
-		     this.database.getDatabaseRef('rtc/candidates/' + this.appContext.appUser.uid ).orderByChild('descId').equalTo(desc.messId).off('value', pcItem.onSignal)
-		 }else{
-		     //Снятие ранее установленных неявных кандидатов
-		     this.database.getDatabaseRef('rtc/implicit-candidates/' + this.appContext.appUser.uid ).orderByChild('descId').equalTo(desc.messId).off('value', pcItem.onSignal);
-		 }
+		 this.database.getDatabaseRef((pcItem.explicit ? 'rtc/candidates/' : 'rtc/implicit-candidates/') + this.appContext.appUser.uid ).orderByChild('descId').equalTo(desc.messId).off('value', pcItem.onSignal) ;
+
 		 //Установка статуса дескриптора на отмененный, если его статус активный или теневой
 		this.database.setDescriptorStatus({[desc.descType + (pcItem.initializer ? desc.contact.uid : this.appContext.appUser.uid) + '/' + desc.messId] : {status : 'refused'}});   //refused
 	    }
@@ -284,7 +288,8 @@ export class WebRtcService {
     }
     
     setCandidates(pc, candidate){
-	pc.addIceCandidate(JSON.parse(candidate.desc))
+        let cand = JSON.parse(candidate.desc);
+	pc.addIceCandidate(cand).then().catch((err) => console.error(err));
     }
     
     showUserNotification(payload){
@@ -314,19 +319,18 @@ export class WebRtcService {
     }
     
     setupChat(pcItem) { //Настройка текстового чата
-	let channel = pcItem.channel;
 	//Соединение открыто, т.е. собеседник принял соединение
-	channel.addEventListener('open', this.onOpenConnection.bind({pcItem : pcItem, that : this}));
+	pcItem.channel.addEventListener('open', (event)=> this.onOpenConnection({pcItem : pcItem, that : this, event : event}));
 	//Пришло сообщение от собеседника
-	channel.addEventListener('message', this.onMessage.bind({pcItem : pcItem, that : this}));
+	pcItem.channel.addEventListener('message', (event)=>this.onMessage({pcItem : pcItem, that : this, event : event}));
 	//Ошибка канала сообщения
-	channel.addEventListener('error', this.onErrorChannel.bind({pcItem : pcItem, that : this})) ;
+	pcItem.channel.addEventListener('error', (event)=> this.onErrorChannel({pcItem : pcItem, that : this, event :event})) ;
 	//Закрытие канала связи собеседником
-	channel.addEventListener('close', this.onCloseChannel.bind({pcItem : pcItem, that : this}))
+	pcItem.channel.addEventListener('close', (event)=> this.onCloseChannel({pcItem : pcItem, that : this, event : event}))
     }
     
-    onOpenConnection(event){
-	let context = <any>this,
+    onOpenConnection(opt){
+	let context = opt,
 	    that = context.that;
 	//канал открыт,// т.е. собеседник открыл соединение, нужно отправить содержимое первого сообщения
 	//Для отправки первого сообщения, когда канал связи еще не открыт, у объекта канала (channel) вызывается
@@ -346,7 +350,7 @@ export class WebRtcService {
 	    //текстового поля в переменную и выдавать ее значение всем новоприбывшим.
 	    that.appContext.webRtcComponent.messageGroup.get('textControl').setValue('');
 	}
-	context.pcItem.contact.statusColor = that.statusColors[event.type];
+	context.pcItem.contact.statusColor = that.statusColors[opt.event.type];
 	//Проверка всех соединений на предмет имеющегося хотябы одного открытого соединения
 	//для изменения отображения кнопки отправки сообщения
 	that.checkConnections();
@@ -376,26 +380,26 @@ export class WebRtcService {
 	//сообщение отправлено, нужно отчистить поле ввода
 	this.appContext.contentComp.changeRef.detectChanges();
     }
-    onMessage(event){ //получение сообщения от pcConnection
-	let context = <any>this;
+    onMessage(opt){ //получение сообщения от pcConnection
+	let context = opt;
 	//Отобразить полученное сообщение
-	context.pcItem.messageText =  event.data;
+	context.pcItem.messageText =  opt.event.data;
 	context.pcItem.sender = context.pcItem.contact;
 	context.that.renderMessage(context.pcItem) ;
-	context.pcItem.contact.statusColor = context.that.statusColors[event.type];
+	context.pcItem.contact.statusColor = context.that.statusColors[opt.event.type];
 	context.that.checkConnections();
     }
     
-    onCloseChannel(event){
-	let context = <any>this;
+    onCloseChannel(opt){
+	let context = opt;
 	//Предупредить пользователя о закрытие канала сообщения
-	context.pcItem.contact.statusColor = context.that.statusColors[event.type];
+	context.pcItem.contact.statusColor = context.that.statusColors[opt.event.type];
 	context.that.checkConnections();
     }
     
-    onErrorChannel(event){
-	let context = <any>this;
-	context.pcItem.contact.statusColor = context.that.statusColors[event.type];
+    onErrorChannel(opt){
+	let context = opt;
+	context.pcItem.contact.statusColor = context.that.statusColors[opt.event.type];
 	context.that.checkConnections();
     }
     

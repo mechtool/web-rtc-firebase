@@ -19,7 +19,6 @@ import {Router} from "@angular/router";
 })
 export class WebRtcComponent implements OnInit, OnDestroy {
     
-    
     public firstMessageText;
     private _messageType = 0;
     public pcMessage : PcMessage ;
