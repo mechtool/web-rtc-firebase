@@ -79,11 +79,11 @@ export class WebRtcService {
 		let result : any = {received : true, messId : options.mid || uuid()};
 		if(this.appContext.webRtcComponent && Object.keys(this.pcMessage.pcCollection).length){
 		    this.notifications[result.messId] = options.message;
-	    
 		    //Отобразить предупреждение об удалении текущего сообщения
 		    result = await this.showUserNotification({messId : result.messId, sender : {name : 'Application', photoURL : '/assets/app-shell/mess-00.png', imgColor : '', message : message}});
-	    
-		    delete this.notifications[result.messId]
+		    delete this.notifications[result.messId] ;
+		}else if(this.appContext.webRtcComponent && !Object.keys(this.pcMessage.pcCollection).length){
+		     res({received : false});
 		}
 		res(result);
 	    })
@@ -227,8 +227,7 @@ export class WebRtcService {
     }
     
     closeAllMessages(){
-	//отчистка всей коммуникации
-	this.communications.base.next({type  : 'initialize'});
+
 	if(this.appContext.webRtcComponent){ //если компонент существует
 	    //отчистка коллекции контактов сообщения, только, если экземпляр PeerConnection существует
 	    //, т.е. существует объект соединения старого сообщения в котором использовались
@@ -253,7 +252,7 @@ export class WebRtcService {
 	}
 	//Отключение всех  таймаутов
 	for(let key in this.timeouts){
-	    clearTimeout(this.timeouts[key].listener);
+	    clearTimeout(this.timeouts[key]);
 	}
 	//Затираем ссылку на объект
 	this.timeouts = {};
@@ -407,8 +406,8 @@ export class WebRtcService {
         let col = Object.values(this.pcMessage.pcCollection) ;
         if(col.length == 0) {
             //пиры отсутствуют
-            return this.appContext.webRtcComponent.noPeers = false ;
-	}
+	    return { received : this.appContext.webRtcComponent.noPeers = false};
+	    }
         //вычисление отсутствие  пиров на основе статуса, перебором всех элементов соединения
 	this.appContext.webRtcComponent.noPeers = col.some((pcItem : any) => /#58ad4e|#3f8e54|#4351d9|#0e0ca5|#00afb6/.test(pcItem.contact.statusColor)) ;
 	this.appContext.webRtcComponent.connecting = (!this.appContext.webRtcComponent.noPeers) && col.length;
@@ -462,11 +461,10 @@ export class WebRtcService {
 	            //Отобразить предупреждение пользователю
 	            this.showUserNotification({messageType : 1, sender : {message : 'Абоненты не ответили!', name : 'Application', photoURL : '/assets/app-shell/mess-00.png', imgColor : 'transparent', statusColor : this.statusColors.open}, messId : uuid()}).then(resp => {})  ;
 	            this.closeAllMessages();
-		}
-	        clearTimeout(this.timeouts[opts.desc.uid]);
-	        delete this.timeouts[opts.desc.uid];
-	       
-	        }, parseInt(window.localStorage.getItem('timeout')) * 1500 )) ;
+		}else {
+		    clearTimeout(this.timeouts[opts.desc.uid]);
+		    delete this.timeouts[opts.desc.uid];
+		}}, parseInt(window.localStorage.getItem('timeout')) * 1500 )) ;
 	    //-----------------------------------------------------------------------------------
 	    //Если предложение принято нужно сформировать предложения для контактов, находящихся в
 	    // списке получателей desc.receivers + отправитель явного предложения по схеме:

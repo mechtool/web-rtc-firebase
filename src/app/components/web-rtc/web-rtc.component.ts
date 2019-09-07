@@ -61,25 +61,27 @@ export class WebRtcComponent implements OnInit, OnDestroy {
 		) {
         this.appContext.webRtcComponent = this;
 	this.pcMessage = this.appContext.webRtcService.pcMessage;
+ 
+	this.subscribes.push(this.communication.base.subscribe((message : any) => {
+	    if(message.type === 'new-contacts'){
+		let v = this.messageContacts.value;
+		message.messType && (this.messageType = message.messType === 'text' ? 0 : message.messType === 'audio' ? 1 : 2);
+		(message.contacts as Array<any>).forEach(con => {
+		    if(!v.some(c => c.uid === con.uid) || !v.length){
+			v.push(this.appContext.contentComp._contacts.find(cont => cont.uid == con.uid) || con) ;
+			//*
+			this.noPeers = true;
+		    }
+		}) ;
+		this.messageContacts.next(v); //*
+		message.complete && message.complete();
+	    }
+	    this.contentComp.changeRef.detectChanges();
+	}));
     }
     
     ngOnInit() {
-        this.subscribes.push(this.communication.base.subscribe((message : any) => {
-	  if(message.type === 'new-contacts'){
-	      let v = this.messageContacts.value;
-	      message.messType && (this.messageType = message.messType === 'text' ? 0 : message.messType === 'audio' ? 1 : 2);
-	      (message.contacts as Array<any>).forEach(con => {
-		  if(!v.some(c => c.uid === con.uid) || !v.length){
-		      v.push(this.appContext.contentComp._contacts.find(cont => cont.uid == con.uid) || con) ;
-		      //*
-		      this.noPeers = true;
-		  }
-	      }) ;
-	      this.messageContacts.next(v); //*
-	      message.complete && message.complete();
-	  }
-	  this.contentComp.changeRef.detectChanges();
-      }));
+
   }
   
   ngOnDestroy(){
@@ -98,19 +100,23 @@ export class WebRtcComponent implements OnInit, OnDestroy {
         if((!this.typeIcons[inx].active && this.appContext.contentComp.disableButton)){
 	    return false;
 	}
+        //Снимаем активность всех кнопок
 	this.typeIcons.forEach(ic => ic.active = false ) ;
+        //Устанавливаем активность на нужной кнопке
 	this.typeIcons[inx].active = true;
+	//Если активированная кнопка не является одной и тойже
+	//пробуем закрыть соединение
 	if(this.messageType !== inx){
 	    this.onCloseConnection();
+	    this.messageType = inx;
+	    this.router.navigateByUrl(this.typeIcons[inx].src,{ skipLocationChange: true });
 	}
-	this.messageType = inx;
-	this.router.navigateByUrl(this.typeIcons[inx].src,{ skipLocationChange: true });
     }
     
     onSubmit(event){
         event.type === 'keydown' && event.preventDefault();
         if(this.messageType === 0){
-            this.webRtcService.textMessage({initializer : true, desc : {messageType : 'text', status : 'active'}, contacts : this.appContext.webRtcComponent.messageContacts.value});
+            this.webRtcService.textMessage({initializer : true, desc : {uid : this.appContext.appUser.uid, messageType : 'text', status : 'active'}, contacts : this.appContext.webRtcComponent.messageContacts.value});
         }else{
 	    this.webRtcService.startConnection({initializer : true,  desc : {uid : this.appContext.appUser.uid, messageType :  this.messageType === 1 ? 'audio' : 'video', status  : 'active' },  contacts : this.appContext.webRtcComponent.messageContacts.value});
 	}
@@ -119,10 +125,15 @@ export class WebRtcComponent implements OnInit, OnDestroy {
     deleteContact(uidArr : string[]){
 	let arr = this.messageContacts.value;
 	uidArr.forEach(uid =>{
-	    let inx = arr.findIndex(cont => cont.uid === uid);
+	    let inx = arr.findIndex(cont => {
+	        if(cont.uid === uid){
+	            cont.checked = false;
+	            return true;
+		}
+	    });
 	    if(inx > -1){
 		arr.splice(inx, 1) ;
-		this.messageContacts.next(arr);
+		this.messageContacts.next((arr));
 		//снять checkbox контакта в боковой навигации (mat-sidenav)
 		this.contentComp.checkSideNav([{uid : uid, checked : false}]) ;
 	    }

@@ -3,7 +3,6 @@ import {Contact} from "../../classes/Classes";
 import {DatabaseService} from "../../services/database.service";
 import {Router} from "@angular/router";
 import {CommunicationService} from "../../services/communication.service";
-import {AppComponent} from "../../app.component";
 import {AppContextService} from "../../services/app-context.service";
 
 @Component({
@@ -42,13 +41,10 @@ export class ContactComponent implements OnInit {
         //Проверить существование экземпляров компонентов сообщений (текстового, аудио, видео)
 	//Если не одного из сообщений не существует, то переходин на страницу текстового сообщения
 	this.context.checked = true;
-	let arr = [this.context];
-	if(!this.appContext.webRtcComponent && this.communication.base.value.contacts){
-	  arr = this.communication.base.value.contacts;
-	  arr.push(this.context);
-	}
-	this.communication.base.next({type : 'new-contacts', contacts :  arr}) ;
-	if(!this.appContext.webRtcComponent) this.zone.run(() => this.router.navigate(['content', 'message']));
+	if(!this.appContext.webRtcComponent) {
+	    this.zone.run(() => this.router.navigate(['content', 'message'])).then(() => 	this.communication.base.next({type : 'new-contacts', contacts :  [this.context]}))
+	}else this.communication.base.next({type : 'new-contacts', contacts :  [this.context]}) ;
+    
     }
     onChangeCheckbox(check){
         check.checked ? this.onNewMessage(): (this.appContext.webRtcComponent && this.appContext.webRtcComponent.deleteContact([this.context.uid]));
