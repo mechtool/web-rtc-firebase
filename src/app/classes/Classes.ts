@@ -43,6 +43,7 @@ export class Descriptor {
     status : string;
     contact : Contact;
     explicit : boolean;
+    candidates : [];
     
     
     constructor(desc){
@@ -57,6 +58,7 @@ export class Descriptor {
 	this.status = desc.status || '' ;
 	this.contact = desc.contact || undefined;
 	this.explicit = desc.explicit || true;
+	this.candidates = desc.candidates || [];
     }
 }
 
