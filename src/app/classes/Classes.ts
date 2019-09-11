@@ -43,7 +43,8 @@ export class Descriptor {
     status : string;
     contact : Contact;
     explicit : boolean;
-    candidates : [];
+    optimize : boolean;
+    candidates : any[];
     
     
     constructor(desc){
@@ -57,7 +58,8 @@ export class Descriptor {
 	this.messageType = desc.messageType || '';
 	this.status = desc.status || '' ;
 	this.contact = desc.contact || undefined;
-	this.explicit = desc.explicit || true;
+	this.explicit =  typeof desc.explicit === 'boolean' ?  desc.explicit  :  true;
+	this.optimize = typeof desc.optimize === 'boolean' ? desc.optimize : true;
 	this.candidates = desc.candidates || [];
     }
 }

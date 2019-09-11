@@ -1,7 +1,8 @@
 .settings-container{
     padding: 12px;
-    height: calc(100%);
-    overflow: auto;
+    height: calc(96%);
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 .settings-entry{
     display: flex;
@@ -19,7 +20,8 @@
 }
 /*-------------------------max-width 400px------------------------------*/
 @media all and (max-width: 400px) {
-    mat-form-field.timeout-field, mat-form-field.contact-sign-field{
+    mat-form-field.timeout-field, mat-form-field.notification-delay-field,
+    mat-form-field.contact-sign-field{
         width: 100px;
     }
 }

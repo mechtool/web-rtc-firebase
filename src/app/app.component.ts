@@ -113,11 +113,13 @@ export class AppComponent implements OnInit{
     
     ngOnInit(){
         let selector = window.localStorage.getItem('colorTheme');
-	window.localStorage.setItem('usePushNotification', window.localStorage.getItem('usePushNotification') || 'true');
+	window.localStorage.setItem('usePushNotification', window.localStorage.getItem('usePushNotification')|| 'true');
 	window.localStorage.setItem('saveMessages', window.localStorage.getItem('saveMessages') || 'false');
+	window.localStorage.setItem('optimize', window.localStorage.getItem('optimize') || 'true');
 	window.localStorage.setItem('contactSign', window.localStorage.getItem('contactSign') || '10 символов');
 	//Установка настроек значений по умолчанию
 	window.localStorage.setItem('timeout', window.localStorage.getItem('timeout') || '30 секунд');
+	window.localStorage.setItem('notificationDelay', window.localStorage.getItem('notificationDelay') || '2 секунды');
         if(!selector){
 	    window.localStorage.setItem('colorTheme', selector = 'second-theme');
 	}

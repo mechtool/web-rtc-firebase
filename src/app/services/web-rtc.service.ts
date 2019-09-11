@@ -6,6 +6,7 @@ import {MessagingService} from "./messaging.servece";
 import {Router} from "@angular/router";
 import {NotificationService} from "./notification.service";
 import {CommunicationService} from "./communication.service";
+import {HttpClient} from "@angular/common/http";
 const uuid = require('uuid/v1');
  //todo Выполнить блокировку чекбоксов в sidenav при начале соединения и разблокировку при окончании
 //todo Добовить отметку времени создания сообщения и добавить ее в интерфейс компонента contact
@@ -49,13 +50,14 @@ export class WebRtcService {
 	    public router : Router,
 	    public notificationService : NotificationService,
 	    public communications : CommunicationService,
+	    public http : HttpClient,
 	    ) {};
   
     async initialize(){ //Инициализация сервиса при авторизированном старте приложения:
         //1.Получаем конфигурацию STUN/TURN
 	//2.Подписываемся на получения АКТИВНЫХ предложений или ответов
       try{
-/*	  this.configuration =  await this.http.put("https://global.xirsys.net/_turn/web-rtc" , JSON.stringify({"format": "urls"}) ,{
+	  this.configuration =  JSON.parse(await this.http.put("https://global.xirsys.net/_turn/web-rtc" , JSON.stringify({"format": "urls"}) ,{
 	      headers : {
 		  "Authorization" : "Basic " + window.btoa("siwa:9c159066-7943-11e9-8c10-0242ac110003"),
 		  "Content-Type" : "application/json",
@@ -63,7 +65,7 @@ export class WebRtcService {
 	  }).toPromise().then((res : any) => {
 	      console.log(res.v ? 'STUN/TURN конфигурация получена!': 'STUN/TURN конфигурация не получена!');
 	      return res.v;
-	  });*/
+	  }));
 	  //Запуск сервиса должен обеспечить подключения всех трех способов получения сообщений: текстовый, аудио, видео
 	 this.collections.forEach(coll => {
 	     //подписка на активные предложения и ответы
@@ -108,7 +110,15 @@ export class WebRtcService {
 		try {
 		    if(descriptor.status === 'active'){
 			//отобразить каждое сообщение пользователю
-			ntResult = await that.showUserNotification(descriptor);
+			await (()=> {
+			    return new Promise(res => {
+				let tm = setTimeout(async () =>{
+				    ntResult = await that.showUserNotification(descriptor);
+				    clearTimeout(tm);
+				    res();
+				}, parseInt(window.localStorage.getItem('notificationDelay')) * 1000);
+			    })
+			})();
 			//Выбран прием входяшего сообщения, нужно проверить общается ли пользователь с кем нибудь, т.е существует ли компонент сообщения
 			if(this.appContext.webRtcComponent && Object.keys(this.pcMessage.pcCollection).length){
 			    //Отобразить второе предупреждение об удалении текущего сообщения
@@ -147,7 +157,7 @@ export class WebRtcService {
 				if(key == this.appContext.appUser.uid) continue;
 				if(active){
 				    //Сформировать теневое предложение и сформировать подписку на теневые ответы
-				    that.startConnection({initializer : true,  desc: {messageType : descriptor.messageType , status  : 'implicit' }, contacts : [descriptor.receivers[key]]});
+				    that.startConnection({initializer : true,  desc: {messageType : descriptor.messageType , status  : 'implicit' }, contacts : [descriptor.receivers[key]], descriptor : descriptor});
 				}
 			    }
 			//Запуск подписки на теневые предложения и ответы
@@ -177,19 +187,26 @@ export class WebRtcService {
 	    if(pc){
 		// установили удаленный offer как удаленный дескриптор
 		await pc.setRemoteDescription(new RTCSessionDescription(descriptor.desc));
+		console.log('Удаленное предложение установлено. Контакт uid:' + descriptor.sender.uid);
 		//установили локальный дескриптор и создали свой ответ (answer)
 		await pc.setLocalDescription(await pc.createAnswer());
 		//формирование ответа на приглашение, после которого вызывается меод формирования кандидатов
 		//в котором и происходит отправка дескриптора на сервер
-		pcItem.desc = new Answer({messId : descriptor.messId , status :  pcItem.explicit ? 'active' : 'implicit',   uid : this.appContext.appUser.uid, messageType : descriptor.messageType,  descType : this.collections[1], contact : pcItem.contact, receivers : {[descriptor.sender.uid] : descriptor.sender}, sender : this.appContext.appUser, desc: pc.localDescription.toJSON(), explicit :  pcItem.explicit });
-		//Отправка дескриптора на сервер
-		await this.database.sendDescriptor(pcItem.desc);
+		pcItem.desc = new Answer({messId : descriptor.messId , status :  pcItem.explicit ? 'active' : 'implicit',   uid : this.appContext.appUser.uid, messageType : descriptor.messageType,  descType : this.collections[1], contact : pcItem.contact, receivers : {[descriptor.sender.uid] : descriptor.sender}, sender : this.appContext.appUser, desc: pc.localDescription.toJSON(), explicit :  pcItem.explicit , optimize : JSON.parse(window.localStorage.getItem('optimize'))});
 		//Ссылка на функцию сигнализации для дальнейшего ее удаления
 		pcItem.onSignal = this.wrapOnSignal;
-		//Подписка на получение удаленных кандидатов
-		//подписка на получение кандидатов ответов на отправленное предложение
-		this.database.getDatabaseRef((pcItem.explicit ? 'rtc/candidates/' : 'rtc/implicit-candidates/') + this.appContext.appUser.uid ).orderByChild('descId')
-		    .equalTo(pcItem.desc.messId).on('value', pcItem.onSignal);
+		//если оптимизация включена
+		if(pcItem.desc.optimize) {
+		    //Если включена оптимизация, то загружаем из дескриптора, содержащиеся в нем кандидаты
+		    this.setCandidates(pcItem.pc, descriptor.candidates, descriptor);
+		}else {
+		    //Отправка дескриптора на сервер
+		    await this.database.sendDescriptor(pcItem.desc);
+		    //Подписка на получение удаленных кандидатов
+		    //подписка на получение кандидатов ответов на отправленное предложение
+		    this.database.getDatabaseRef((pcItem.explicit ? 'rtc/candidates/' : 'rtc/implicit-candidates/') + this.appContext.appUser.uid ).orderByChild('descId')
+			.equalTo(pcItem.desc.messId).on('value', pcItem.onSignal);
+		}
 	    }
 	    }catch (e) { //Выход по ошибке
 		await this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'rejected'}});
@@ -202,20 +219,20 @@ export class WebRtcService {
 		let pcItem = that.getPcItem(descriptor.uid);
 		if(pcItem && pcItem.pc) (async () => {
 		    pcItem.pc.setRemoteDescription(new RTCSessionDescription(descriptor.desc)).then(()=>{
+		        console.log('Удаленный ответ устновлен. Контакт uid '+ descriptor.sender.uid)
 		    //Изменение статуса дескриптора - принят
 		    	this.database.setDescriptorStatus({[descriptor.descType + this.appContext.appUser.uid + '/' + descriptor.messId] : {status : 'received'}}) }).catch((err) => console.error(err));
-		    
-		    //Установка удаленных кандидатов, если
-		   // this.setCandidates(pcItem.pc, d.candidates);
+		    //Установка удаленных кандидатов, при оптимизации.
+		    //Выгрузить кандидаты при оптимизированном соединении
+		   descriptor.optimize && this.setCandidates(pcItem.pc, descriptor.candidates.map(descr => {
+		       return descr.desc;
+		   }), descriptor);
 		})();
 	}else if(descriptor.descType.indexOf('candidates') >= 0){
 	    //получаем активные кандидаты
 		let pcItem = that.getPcItem(descriptor.uid);
 		//Установка кандидата
-	    	pcItem.pc.addIceCandidate(new RTCIceCandidate(descriptor.desc)).then(()=>
-		    //После установки кандидата записать в базу его статус  "received"
-		    this.database.setDescriptorStatus({[descriptor.descType + descriptor.contact.uid + '/' + descriptor.messId] : {status : 'received'}})
-		).catch((err) => console.error(err));
+	    	pcItem && this.setCandidates(pcItem.pc, [descriptor.desc], descriptor) ;
 	}
 
 	//Функция, которая формирует список контактов для каждого пира, удаляя из этого списка
@@ -226,6 +243,16 @@ export class WebRtcService {
 	    arr.push(desc.sender);
 	    return arr;
 	}
+    }
+    
+    setCandidates(pc, candidates, descriptor){
+        candidates.forEach(cand => {                  
+	    pc.addIceCandidate(new RTCIceCandidate(cand)).then(()=>
+		//После установки кандидата записать в базу его статус  "received"
+		descriptor.descType.indexOf('candidates') >= 0 && this.database.setDescriptorStatus({[descriptor.descType + descriptor.contact.uid + '/' + descriptor.messId] : {status : 'received'}})
+	    ).catch((err) => console.error(err));
+	});
+    
     }
     
     closeAllMessages(){
@@ -526,7 +553,7 @@ export class WebRtcService {
 		//Обработка кандидатов соединения
 		pcItem.pc.onicecandidate = onIceCandidate.bind(this, pcItem); //подписались на получения кандидатов
 		//изменение статуса собирания кандидатов
-		//pcItem.pc.onicegatheringstatechange = onIceGatherStateChange.bind(this, pcItem);
+		JSON.parse(window.localStorage.getItem('optimize')) && (pcItem.pc.onicegatheringstatechange = onIceGatherStateChange.bind(this, pcItem));
 	    }
 	}
     
@@ -545,7 +572,7 @@ export class WebRtcService {
 	      //rejected - отклонено принимающей стороной (устанавливается принимающей стороной)
 	      //received - принят (устанавливается принимающей стороной)
 	      //refused - сброшен и прерван отправляющей стороной (принимающий абонент не ответил по таймауту)
-	      pcItem.desc = new Offer({messId : uuid() , uid : this.appContext.appUser.uid, messageType : pcItem.messageType, contact : pcItem.contact,  receivers : getContactsObject(), status : pcItem.explicit ? 'active' : 'implicit',  descType : this.collections[0], sender : this.appContext.appUser, desc: pcItem.pc.localDescription.toJSON(), explicit : pcItem.explicit});
+	      pcItem.desc = new Offer({messId : uuid() , uid : this.appContext.appUser.uid, messageType : pcItem.messageType, contact : pcItem.contact,  receivers : getContactsObject(), status : pcItem.explicit ? 'active' : 'implicit',  descType : this.collections[0], sender : this.appContext.appUser, desc: pcItem.pc.localDescription.toJSON(), explicit : pcItem.explicit, optimize : (pcItem.explicit ? JSON.parse(window.localStorage.getItem('optimize')) : opts.descriptor.optimize)});
 	      //Установка таймаута на сообщения, которых пользователь является инициатором для отслеживания соединения
 /*	      this.timeouts[pcItem.contact.uid] = { listener : setTimeout(()=>{
 	          if(pcItem.pc.connectionState === 'connected'){
@@ -563,9 +590,9 @@ export class WebRtcService {
 	          }
 	      }, parseInt(window.localStorage.getItem('timeout')) * 1000 ), resolve : false };*/
 	      //Отправка предложения сигнализации
-	      await this.database.sendDescriptor(pcItem.desc);
+	      pcItem.desc.optimize || await this.database.sendDescriptor(pcItem.desc);
 	      //отправка Push-Notification получателю, если настройка позволяет
-	      JSON.parse(window.localStorage.getItem('usePushNotification')) && pcItem.explicit && await this.messaging.sendNotificationMessage(pcItem.desc);
+	       JSON.parse(window.localStorage.getItem('usePushNotification')) && pcItem.explicit && await this.messaging.sendNotificationMessage(pcItem.desc);
 	      //Ссылка на функцию сигнализации для дальнейшего удаления ее вызова
 	      pcItem.onSignal =  this.wrapOnSignal/*this.onSignal.bind(this)*/;
 	      //подписка на получение кандидатов ответов на отправленное предложение
@@ -577,22 +604,27 @@ export class WebRtcService {
       }
   
       function onIceGatherStateChange(pcItem, event){
-	    if(window.localStorage.getItem('optimisation') === 'true' && event.target.iceGatheringState === 'complete'){
+/*	    if(JSON.parse(window.localStorage.getItem('optimize')) && event.target.iceGatheringState === 'complete'){
+	        console.log('Кандидаты сформированы полностью!');
 		if(pcItem.desc.candidates && pcItem.desc.candidates.length){
 		    //Отправить предложение в базу, а затем запустить push messages для каждого получателя
 		    this.database.sendDescriptor(pcItem.desc).then(desc => {
+		        //Только если дескриптор - это предложение и оповещение включено
 			desc.descType.indexOf('offers') >= 0 && JSON.parse(window.localStorage.getItem('usePushNotification')) && pcItem.explicit && this.messaging.sendNotificationMessage(desc);
 		    }).catch(err => {
 			console.log(err);
 		    })
-		} else console.log('Кандидаты не сформированы, отправка предложения невозможна!')
-	    }
+		} else console.log('Кандидаты не сформированы, отправка дескриптора невозможна!')
+	    }*/
       }
   
 	async function onTrack(pcItem, event){
 	    //Не устанавливаем свойство, если оно уже установлено
 	    if (pcItem.pc.srcObject) return;
 	    pcItem.pc.srcObject = event.streams[0];
+	    //при получении трека проверяем соединение
+/*	    pcItem.contact.statusColor = this.statusColors[pcItem.pc.connectionState];
+	    this.checkConnections();*/
 	}
 	
       async function onIceCandidate(pcItem, event) {
@@ -612,20 +644,21 @@ export class WebRtcService {
 		  desc: event.candidate.toJSON(),
 		  status : 'active',
 	      });
-	       //target.candidates.push(candidate);
-	      //Отправить кандидата через сигнализацию
-	       await this.database.sendDescriptor(candidate);
+	      if(JSON.parse(window.localStorage.getItem('optimize'))) {
+		  target.candidates.push(candidate);
+	      }else await this.database.sendDescriptor(candidate);   //Отправить кандидата через сигнализацию
+
 	  }else if(!event.candidate){
-	      console.log('Кандидаты отправлены полностью!')
+	      console.log('Кандидаты отправлены полностью!');
 	      //Отправить предложение в базу, а затем запустить push messages для каждого получателя
-/*	      if(target.candidates && target.candidates.length){
+	      if(target.candidates && target.candidates.length){
 	          this.database.sendDescriptor(pcItem.desc).then(desc => {
 		  		desc.descType.indexOff('offers') >= 0 && JSON.parse(window.localStorage.getItem('usePushNotification')) && pcItem.explicit && this.messaging.sendNotificationMessage(desc);
 	      		}).catch(err => {console.log(err)})
-	      }else console.log('Кандидаты не сформированы, отправка предложения невозможна!')*/
+	      }else console.log('Кандидаты не сформированы, отправка предложения невозможна!')
 	  }
       }
-    
+	
       function getContactsObject(){
 	      let obj = {} ;
 	      opts.contacts.forEach(contact => {

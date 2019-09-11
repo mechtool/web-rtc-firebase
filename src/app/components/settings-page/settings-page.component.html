@@ -19,7 +19,15 @@
 			</mat-select>
 		</mat-form-field>
 	</div>
-	<div class="settings-entry video-input" (change)="onChangeMessageToggle($event)">
+	<div class="settings-entry">
+		<div class="entry-header">Задержка оповещения</div>
+		<mat-form-field class="notification-delay-field">
+			<mat-select [formControl]="NotificationDelayControl" (selectionChange)="onChangeNotificationDelaySelect($event)">
+				<mat-option *ngFor="let deley of notificationDelay" [value]="deley">{{deley}}</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+	<div class="settings-entry video-input" >
 		<div class="entry-header">Камера</div>
 		<mat-form-field>
 			<mat-label>Использовать камеру</mat-label>
@@ -29,7 +37,7 @@
 			</mat-select>
 		</mat-form-field>
 	</div>
-	<div class="settings-entry microphone-input" (change)="onChangeMessageToggle($event)">
+	<div class="settings-entry microphone-input">
 		<div class="entry-header">Микрофон</div>
 		<mat-form-field>
 			<mat-label>Использовать микрофон</mat-label>
@@ -39,7 +47,7 @@
 			</mat-select>
 		</mat-form-field>
 	</div>
-	<div class="settings-entry audio-output" (change)="onChangeMessageToggle($event)">
+	<div class="settings-entry audio-output" >
 		<div class="entry-header">Аудио выход</div>
 		<mat-form-field>
 			<mat-label>Аудио выход</mat-label>
@@ -49,13 +57,17 @@
 			</mat-select>
 		</mat-form-field>
 	</div>
-	<div class="settings-entry" (change)="onChangeMessageToggle($event)">
+	<div class="settings-entry" >
 		<div class="entry-header">Сохранять сообщения</div>
-		<mat-slide-toggle #saveMessages  [formControl]="saveMessageControl"></mat-slide-toggle>
+		<mat-slide-toggle #saveMessages  [formControl]="saveMessageControl" (change)="onChangeMessageToggle($event)"></mat-slide-toggle>
 	</div>
-	<div class="settings-entry" (change)="onChangeNotificationToggle($event)">
+	<div class="settings-entry" >
+		<div class="optimize-header">Оптимизировать соединение</div>
+		<mat-slide-toggle #optimize  [formControl]="optimizeControl" (change)="onChangeOptimizeToggle($event)"></mat-slide-toggle>
+	</div>
+	<div class="settings-entry" >
 		<div class="entry-header">Использовать Push Notification</div>
-		<mat-slide-toggle [formControl]="useNotificationControl"></mat-slide-toggle>
+		<mat-slide-toggle [formControl]="useNotificationControl" (change)="onChangeNotificationToggle($event)"></mat-slide-toggle>
 	</div>
 	<div class="settings-entry"  (click)="onInstallScreen(addScreen)">
 		<div class="entry-header" >Установить приложение</div>
