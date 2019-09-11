@@ -509,6 +509,7 @@ export class WebRtcService {
 	    };
 
 		if(opts.desc.messageType == 'text'){
+		    
 		    if (opts.initializer) {
 			  // создан экземпляр чата открыть его настроку
 			  pcItem.channel = pcItem.pc.createDataChannel(cont.uid);
